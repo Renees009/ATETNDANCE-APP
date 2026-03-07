@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+
+{% block title %}Attendance Report - Attendance System{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h2>Attendance Reports</h2>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Filter Reports</h5>
+            </div>
+            <div class="card-body">
+                <form method="GET" class="row g-3">
+                    <div class="col-md-4">
+                        <label for="{{ form.employee.id_for_label }}" class="form-label">{{ form.employee.label }}</label>
+                        {{ form.employee }}
+                    </div>
+                    <div class="col-md-4">
+                        <label for="{{ form.month.id_for_label }}" class="form-label">{{ form.month.label }}</label>
+                        {{ form.month }}
+                    </div>
+                    <div class="col-md-4">
+                        <label for="{{ form.year.id_for_label }}" class="form-label">{{ form.year.label }}</label>
+                        {{ form.year }}
+                    </div>
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-primary">Filter</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Reports ({{ reports.count }})</h5>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Employee</th>
+                            <th>Period</th>
+                            <th>Total Days</th>
+                            <th>Present</th>
+                            <th>Absent</th>
+                            <th>Late</th>
+                            <th>Half Day</th>
+                            <th>Leave</th>
+                            <th>Attendance %</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for report in reports %}
+                        <tr>
+                            <td><strong>{{ report.employee.get_full_name }}</strong></td>
+                            <td>{{ report.month }}/{{ report.year }}</td>
+                            <td>{{ report.total_days }}</td>
+                            <td><span class="badge bg-success">{{ report.present_days }}</span></td>
+                            <td><span class="badge bg-danger">{{ report.absent_days }}</span></td>
+                            <td><span class="badge bg-warning">{{ report.late_days }}</span></td>
+                            <td><span class="badge bg-info">{{ report.half_days }}</span></td>
+                            <td><span class="badge bg-secondary">{{ report.leave_days }}</span></td>
+                            <td>
+                                <strong>
+                                    {% if report.attendance_percentage >= 90 %}
+                                        <span class="text-success">{{ report.attendance_percentage }}%</span>
+                                    {% elif report.attendance_percentage >= 75 %}
+                                        <span class="text-warning">{{ report.attendance_percentage }}%</span>
+                                    {% else %}
+                                        <span class="text-danger">{{ report.attendance_percentage }}%</span>
+                                    {% endif %}
+                                </strong>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="9" class="text-center py-4">No reports found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

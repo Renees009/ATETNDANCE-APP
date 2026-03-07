@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ employee.get_full_name }} - Attendance System{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h2>{{ employee.get_full_name }}</h2>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Employee Information</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Employee ID:</strong> {{ employee.employee_id }}</p>
+                <p><strong>Email:</strong> {{ employee.email }}</p>
+                <p><strong>Phone:</strong> {{ employee.phone }}</p>
+                <p><strong>Department:</strong> {{ employee.get_department_display }}</p>
+                <p><strong>Position:</strong> {{ employee.position }}</p>
+                <p><strong>Date of Joining:</strong> {{ employee.date_of_joining|date:"d M Y" }}</p>
+                <p><strong>Status:</strong> 
+                    {% if employee.is_active %}
+                        <span class="badge bg-success">Active</span>
+                    {% else %}
+                        <span class="badge bg-danger">Inactive</span>
+                    {% endif %}
+                </p>
+                <a href="{% url 'attendance:edit_employee' employee.employee_id %}" class="btn btn-warning">Edit</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Recent Attendance (Last 30 Days)</h5>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-sm mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Date</th>
+                            <th>Status</th>
+                            <th>Check In</th>
+                            <th>Check Out</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for record in attendance_records %}
+                        <tr>
+                            <td>{{ record.attendance_date|date:"d M Y" }}</td>
+                            <td>
+                                {% if record.status == 'PRESENT' %}
+                                    <span class="badge bg-success">Present</span>
+                                {% elif record.status == 'ABSENT' %}
+                                    <span class="badge bg-danger">Absent</span>
+                                {% elif record.status == 'LATE' %}
+                                    <span class="badge bg-warning">Late</span>
+                                {% elif record.status == 'HALF_DAY' %}
+                                    <span class="badge bg-info">Half Day</span>
+                                {% elif record.status == 'LEAVE' %}
+                                    <span class="badge bg-secondary">Leave</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ record.check_in_time|default:"--" }}</td>
+                            <td>{{ record.check_out_time|default:"--" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center py-3">No attendance records found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

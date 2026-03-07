@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - Employee Attendance System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="stat-number">{{ total_employees }}</div>
+            <div class="stat-label">Total Employees</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="stat-number">{{ present_today }}</div>
+            <div class="stat-label">Present Today</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="stat-number">{{ absent_today }}</div>
+            <div class="stat-label">Absent Today</div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <a href="{% url 'attendance:add_employee' %}" class="btn btn-primary me-2">➕ Add Employee</a>
+                <a href="{% url 'attendance:mark_attendance' %}" class="btn btn-info me-2">✓ Mark Attendance</a>
+                <a href="{% url 'attendance:employee_list' %}" class="btn btn-secondary">👥 View Employees</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
