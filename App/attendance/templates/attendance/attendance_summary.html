@@ -1,0 +1,155 @@
+{% extends 'base.html' %}
+
+{% block title %}Attendance Summary Report - Attendance System{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h2>📊 Attendance Summary Report</h2>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Filter Summary</h5>
+            </div>
+            <div class="card-body">
+                <form method="GET" class="row g-3">
+                    <div class="col-md-3">
+                        <label for="{{ form.month.id_for_label }}" class="form-label">Month</label>
+                        {{ form.month }}
+                    </div>
+                    <div class="col-md-3">
+                        <label for="{{ form.year.id_for_label }}" class="form-label">Year</label>
+                        {{ form.year }}
+                    </div>
+                    <div class="col-md-3">
+                        <label for="{{ form.employee.id_for_label }}" class="form-label">Employee</label>
+                        {{ form.employee }}
+                    </div>
+                    <div class="col-md-3" style="padding-top: 32px;">
+                        <button type="submit" class="btn btn-primary">Generate Report</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if summaries %}
+<div class="row">
+    {% for summary in summaries %}
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <h5 class="mb-0" style="color: white;">
+                    {{ summary.employee.get_full_name }}
+                    <span class="float-end" style="font-size: 0.8em;">{{ summary.month }}-{{ summary.year }}</span>
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <small class="text-muted">Department</small>
+                        <p>{{ summary.employee.get_department_display }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <small class="text-muted">Position</small>
+                        <p>{{ summary.employee.position }}</p>
+                    </div>
+                </div>
+
+                <hr>
+
+                <h6>Attendance Statistics</h6>
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <div class="stat-box" style="background: #d4edda; padding: 10px; border-radius: 5px; text-align: center;">
+                            <small>Present</small>
+                            <h4 style="color: green; margin: 5px 0;">{{ summary.present }}</h4>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="stat-box" style="background: #f8d7da; padding: 10px; border-radius: 5px; text-align: center;">
+                            <small>Absent</small>
+                            <h4 style="color: red; margin: 5px 0;">{{ summary.absent }}</h4>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="stat-box" style="background: #fff3cd; padding: 10px; border-radius: 5px; text-align: center;">
+                            <small>Late</small>
+                            <h4 style="color: orange; margin: 5px 0;">{{ summary.late }}</h4>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <div class="stat-box" style="background: #cfe2ff; padding: 10px; border-radius: 5px; text-align: center;">
+                            <small>Working Leave</small>
+                            <h4 style="color: blue; margin: 5px 0;">{{ summary.working_leave }}</h4>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="stat-box" style="background: #ffeaa7; padding: 10px; border-radius: 5px; text-align: center;">
+                            <small>NFD</small>
+                            <h4 style="color: #cc6600; margin: 5px 0;">{{ summary.nfd }}</h4>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="stat-box" style="background: #e0e7ff; padding: 10px; border-radius: 5px; text-align: center;">
+                            <small>Total Days</small>
+                            <h4 style="color: #4f46e5; margin: 5px 0;">{{ summary.total_days }}</h4>
+                        </div>
+                    </div>
+                </div>
+
+                <hr>
+
+                <div class="row">
+                    <div class="col-md-12">
+                        <h6>Attendance Percentage</h6>
+                        <div class="progress" style="height: 30px;">
+                            {% if summary.attendance_percentage >= 90 %}
+                                <div class="progress-bar bg-success" role="progressbar" style="width: {{ summary.attendance_percentage }}%">
+                                    {{ summary.attendance_percentage }}%
+                                </div>
+                            {% elif summary.attendance_percentage >= 75 %}
+                                <div class="progress-bar bg-warning" role="progressbar" style="width: {{ summary.attendance_percentage }}%">
+                                    {{ summary.attendance_percentage }}%
+                                </div>
+                            {% else %}
+                                <div class="progress-bar bg-danger" role="progressbar" style="width: {{ summary.attendance_percentage }}%">
+                                    {{ summary.attendance_percentage }}%
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                {% if summary.absent_reasons %}
+                <hr>
+                <h6>Absence Reasons</h6>
+                <ul style="list-style: none; padding: 0;">
+                    {% for reason, count in summary.absent_reasons.items %}
+                    <li>{{ reason }}: <strong>{{ count }}</strong></li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="alert alert-info">
+            Click "Generate Report" to view attendance summary for the selected period.
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

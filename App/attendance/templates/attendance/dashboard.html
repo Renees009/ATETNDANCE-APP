@@ -4,22 +4,28 @@
 
 {% block content %}
 <div class="row">
-    <div class="col-md-4">
+    <div class="col-md-3">
         <div class="stat-card">
             <div class="stat-number">{{ total_employees }}</div>
             <div class="stat-label">Total Employees</div>
         </div>
     </div>
-    <div class="col-md-4">
+    <div class="col-md-3">
         <div class="stat-card">
             <div class="stat-number">{{ present_today }}</div>
             <div class="stat-label">Present Today</div>
         </div>
     </div>
-    <div class="col-md-4">
+    <div class="col-md-3">
         <div class="stat-card">
             <div class="stat-number">{{ absent_today }}</div>
             <div class="stat-label">Absent Today</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-number">{{ working_leave_today }}</div>
+            <div class="stat-label">On Working Leave</div>
         </div>
     </div>
 </div>
@@ -31,9 +37,66 @@
                 <h5 class="mb-0">Quick Actions</h5>
             </div>
             <div class="card-body">
-                <a href="{% url 'attendance:add_employee' %}" class="btn btn-primary me-2">➕ Add Employee</a>
-                <a href="{% url 'attendance:mark_attendance' %}" class="btn btn-info me-2">✓ Mark Attendance</a>
-                <a href="{% url 'attendance:employee_list' %}" class="btn btn-secondary">👥 View Employees</a>
+                <div class="row">
+                    <div class="col-md-3 mb-2">
+                        <a href="{% url 'attendance:add_employee' %}" class="btn btn-primary btn-block" style="width: 100%;">
+                            ➕ Add Employee
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <a href="{% url 'attendance:mark_attendance' %}" class="btn btn-success btn-block" style="width: 100%;">
+                            ✓ Mark Attendance
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <a href="{% url 'attendance:attendance_by_date' %}" class="btn btn-info btn-block" style="width: 100%;">
+                            📅 View By Date
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <a href="{% url 'attendance:attendance_summary' %}" class="btn btn-warning btn-block" style="width: 100%;">
+                            📊 Reports
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">📋 Quick Navigation</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item"><a href="{% url 'attendance:employee_list' %}">View All Employees</a></li>
+                    <li class="list-group-item"><a href="{% url 'attendance:attendance_history' %}">View Attendance History</a></li>
+                    <li class="list-group-item"><a href="{% url 'attendance:attendance_by_month' %}">View by Month</a></li>
+                    <li class="list-group-item"><a href="{% url 'attendance:attendance_by_year' %}">View by Year</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">📝 System Information</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Today's Date:</strong> {{ today|date:"F j, Y" }}</p>
+                <p><strong>Current Status:</strong> <span class="badge bg-success">Active</span></p>
+                <p><strong>Features:</strong></p>
+                <ul>
+                    <li>Hash table based attendance storage</li>
+                    <li>30-day edit window for attendance records</li>
+                    <li>Admin override capability</li>
+                    <li>Comprehensive attendance reports</li>
+                    <li>Multiple viewing filters</li>
+                </ul>
             </div>
         </div>
     </div>
