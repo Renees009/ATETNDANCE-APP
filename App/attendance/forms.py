@@ -27,15 +27,15 @@ class AttendanceForm(forms.ModelForm):
     
     class Meta:
         model = Attendance
-        fields = ['employee', 'attendance_date', 'status', 'check_in_time', 'check_out_time', 'absence_reason', 'remarks']
+        # remove the dropdown reason field (we'll reuse remarks for any text explanation)
+        fields = ['employee', 'attendance_date', 'status', 'check_in_time', 'check_out_time', 'remarks']
         widgets = {
             'employee': forms.Select(attrs={'class': 'form-control'}),
             'attendance_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'status': forms.Select(attrs={'class': 'form-control'}),
             'check_in_time': forms.TimeInput(attrs={'class': 'form-control', 'type': 'time'}),
             'check_out_time': forms.TimeInput(attrs={'class': 'form-control', 'type': 'time'}),
-            'absence_reason': forms.Select(attrs={'class': 'form-control'}),
-            'remarks': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'remarks': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Reason or notes (required for absent or work-from-home)'}),
         }
     
     def __init__(self, *args, user=None, instance=None, **kwargs):
@@ -43,9 +43,13 @@ class AttendanceForm(forms.ModelForm):
         self.user = user
         self.instance_obj = instance
         
-        # Make absence_reason optional initially, will be validated in clean()
-        self.fields['absence_reason'].required = False
-        self.fields['absence_reason'].label = "Reason (Required if Absent)"
+        # Ensure the date cannot be changed and defaults to today
+        today = timezone.localdate()
+        self.fields['attendance_date'].initial = today
+        self.fields['attendance_date'].widget.attrs['readonly'] = True
+        self.fields['attendance_date'].widget.attrs['disabled'] = True
+        self.fields['attendance_date'].required = False  # disable validation, we'll enforce in clean()
+        self.fields['attendance_date'].help_text = "Attendance for today only"
         
         # Check if this is an edit and if record is editable
         if instance and instance.pk:
@@ -56,7 +60,7 @@ class AttendanceForm(forms.ModelForm):
     
     def _mark_fields_readonly(self, reason: str = ""):
         """Mark all fields as readonly when record cannot be edited"""
-        readonly_fields = ['employee', 'attendance_date', 'status', 'check_in_time', 'check_out_time', 'absence_reason', 'remarks']
+        readonly_fields = ['employee', 'attendance_date', 'status', 'check_in_time', 'check_out_time', 'remarks']
         for field_name in readonly_fields:
             if field_name in self.fields:
                 self.fields[field_name].widget.attrs['readonly'] = True
@@ -69,13 +73,18 @@ class AttendanceForm(forms.ModelForm):
         """Validate form data"""
         cleaned_data = super().clean()
         status = cleaned_data.get('status')
-        absence_reason = cleaned_data.get('absence_reason')
         
-        # Validate: Absence reason is mandatory for ABSENT status
-        if status == 'ABSENT' and not absence_reason:
+        # Validate: Reason/remarks required for ABSENT or WORKING_LEAVE status
+        remarks = cleaned_data.get('remarks')
+        if status == 'ABSENT' and not remarks:
             raise ValidationError(
-                "Absence reason is mandatory when marking an employee as Absent.",
+                "A reason must be provided when marking an employee as Absent.",
                 code='absent_requires_reason'
+            )
+        if status == 'WORKING_LEAVE' and not remarks:
+            raise ValidationError(
+                "Please provide a brief explanation for work-from-home/working leave.",
+                code='wfh_requires_reason'
             )
         
         # Validate: Check-in and check-out times logic
@@ -88,13 +97,29 @@ class AttendanceForm(forms.ModelForm):
                 code='invalid_check_times'
             )
         
-        # Validate: Check editing restrictions
+        # Validate: Check editing restrictions and date constraint
         if self.instance_obj and self.instance_obj.pk:
             if not self.instance_obj.is_editable(self.user):
                 raise ValidationError(
                     f"This attendance record cannot be edited. {self.instance_obj.get_editable_status(self.user)['reason']}",
                     code='record_not_editable'
                 )
+        # ensure attendance_date is today (field is disabled so may not be submitted)
+        att_date = cleaned_data.get('attendance_date')
+        if not att_date:
+            # populate missing value from server date
+            att_date = timezone.localdate()
+            cleaned_data['attendance_date'] = att_date
+        if att_date != timezone.localdate():
+            raise ValidationError(
+                { 'attendance_date': "Attendance may only be marked for the current day." }
+            )
+        # ensure no duplicate for same employee
+        emp = cleaned_data.get('employee')
+        if emp and Attendance.objects.filter(employee=emp, attendance_date=timezone.localdate()).exclude(pk=(self.instance_obj.pk if self.instance_obj else None)).exists():
+            raise ValidationError(
+                "Attendance has already been submitted for this employee today."
+            )
         
         return cleaned_data
 

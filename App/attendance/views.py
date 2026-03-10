@@ -114,20 +114,51 @@ def edit_employee(request, employee_id):
             form.save()
             messages.success(request, 'Employee updated successfully!')
             return redirect('attendance:employee_detail', employee_id=employee_id)
-    else:
-        form = EmployeeForm(instance=employee)
+        else:
+            form = EmployeeForm(instance=employee)
     
     return render(request, 'attendance/edit_employee.html', {'form': form, 'employee': employee})
 
 
 @require_http_methods(["GET", "POST"])
 def mark_attendance(request):
-    """Mark attendance for employees using hash table structure"""
+    """Mark attendance for employees using hash table structure.
+
+    Business rules implemented:
+    * Only current-day attendance may be marked.
+    * After 5 PM any employee without an entry is automatically recorded as absent.
+    * Working‑from‑home entries are treated as PRESENT with a timestamp.
+    * Once a record exists for an employee on a given day it cannot be changed (no edits allowed).
+    """
+    today = timezone.localdate()
+    now = timezone.localtime()
+
+    # automatically mark absent for everyone who hasn't submitted by 5pm
+    if now.time() >= datetime.strptime("17:00", "%H:%M").time():
+        # build a set of employee IDs that already have records for today
+        existing_ids = set(
+            Attendance.objects.filter(attendance_date=today).values_list('employee_id', flat=True)
+        )
+        to_create = []
+        for emp in Employee.objects.filter(is_active=True):
+            if emp.id not in existing_ids:
+                to_create.append(
+                    Attendance(
+                        employee=emp,
+                        attendance_date=today,
+                        status='ABSENT',
+                        remarks='Auto‑marked absent after 5pm'
+                    )
+                )
+        if to_create:
+            Attendance.objects.bulk_create(to_create)
+            # refresh list after inserting
+    
     if request.method == 'POST':
         form = AttendanceForm(request.POST, user=request.user)
         if form.is_valid():
             attendance = form.save()
-            
+
             # Also populate hash table for efficient retrieval
             try:
                 attendance_hash_table.mark_attendance(
@@ -136,13 +167,12 @@ def mark_attendance(request):
                     status=attendance.status,
                     check_in_time=str(attendance.check_in_time) if attendance.check_in_time else None,
                     check_out_time=str(attendance.check_out_time) if attendance.check_out_time else None,
-                    absence_reason=attendance.absence_reason,
                     remarks=attendance.remarks,
                     created_at=attendance.created_at.isoformat()
                 )
             except Exception as e:
                 messages.warning(request, f'Attendance marked but hash table sync failed: {str(e)}')
-            
+
             messages.success(request, 'Attendance marked successfully!')
             return redirect('attendance:mark_attendance')
         else:
@@ -152,14 +182,15 @@ def mark_attendance(request):
     else:
         form = AttendanceForm(user=request.user)
     
-    # Show today's attendance records
-    today = datetime.today().date()
+    # Show today's attendance records (refresh after potential auto‑absent)
     today_attendance = Attendance.objects.filter(attendance_date=today).select_related('employee')
+    recorded_ids = list(today_attendance.values_list('employee_id', flat=True))
     
     context = {
         'form': form,
         'today_attendance': today_attendance,
         'today': today,
+        'recorded_ids': recorded_ids,
     }
     return render(request, 'attendance/mark_attendance.html', context)
 
@@ -169,7 +200,7 @@ def edit_attendance(request, attendance_id):
     """Edit an attendance record with editing restrictions"""
     attendance = get_object_or_404(Attendance, pk=attendance_id)
     
-    # Check if user can edit
+     # Check if user can edit
     if not attendance.is_editable(request.user):
         status = attendance.get_editable_status(request.user)
         messages.error(request, f"Cannot edit this record: {status['reason']}")
@@ -361,24 +392,16 @@ def attendance_summary(request):
                     summary['present'] = record['count']
                 elif record['status'] == 'ABSENT':
                     summary['absent'] = record['count']
-                elif record['status'] == 'WORKING_LEAVE':
+                elif record['status'] == 'WORKING FROM HOME':
                     summary['working_leave'] = record['count']
-                elif record['status'] == 'NFD':
-                    summary['nfd'] = record['count']
+                # elif record['status'] == 'NFD':
+                #     summary['nfd'] = record['count']
                 elif record['status'] == 'LATE':
                     summary['late'] = record['count']
             
             # Get absence reasons
-            absence_records = Attendance.objects.filter(
-                employee=emp,
-                status='ABSENT',
-                attendance_date__gte=start_date,
-                attendance_date__lte=end_date
-            ).values('absence_reason').annotate(count=Count('absence_reason'))
-            
-            for absence in absence_records:
-                reason = dict(Attendance.ABSENCE_REASONS).get(absence['absence_reason'], 'Unknown')
-                summary['absent_reasons'][reason] = absence['count']
+            # we no longer track structured absence reasons; remarks hold any detail
+            summary['absent_reasons'] = {}
             
             # Calculate attendance percentage (excluding working leaves)
             working_days = summary['total_days'] - summary['working_leave']

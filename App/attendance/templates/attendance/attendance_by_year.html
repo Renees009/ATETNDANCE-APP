@@ -76,7 +76,7 @@
                             </td>
                             <td>{{ record.check_in_time|default:"--" }}</td>
                             <td>{{ record.check_out_time|default:"--" }}</td>
-                            <td>{{ record.get_absence_reason_display|default:"--" }}</td>
+                            <td>{{ record.remarks|default:"--" }}</td>
                         </tr>
                         {% endfor %}
                     </tbody>

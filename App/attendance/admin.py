@@ -47,7 +47,7 @@ class EmployeeAdmin(admin.ModelAdmin):
 class AttendanceAdmin(admin.ModelAdmin):
     """Admin interface for Attendance records with admin override capability"""
     list_display = ('employee', 'attendance_date', 'status_badge', 'check_in_time', 'check_out_time', 'age_display', 'editability')
-    list_filter = ('status', 'attendance_date', 'employee__department', 'absence_reason')
+    list_filter = ('status', 'attendance_date', 'employee__department')
     search_fields = ('employee__employee_id', 'employee__first_name', 'employee__last_name')
     readonly_fields = ('created_at', 'updated_at', 'editable_info')
     date_hierarchy = 'attendance_date'
@@ -57,9 +57,6 @@ class AttendanceAdmin(admin.ModelAdmin):
         }),
         ('Time Information', {
             'fields': ('check_in_time', 'check_out_time')
-        }),
-        ('Absence Information', {
-            'fields': ('absence_reason',)
         }),
         ('Additional Information', {
             'fields': ('remarks',)

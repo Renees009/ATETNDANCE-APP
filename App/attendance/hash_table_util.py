@@ -60,9 +60,8 @@ class AttendanceHashTable:
         Returns:
             bool: True if marked successfully, False otherwise
         """
-        # Validate required fields for ABSENT status
-        if status == 'ABSENT' and not absence_reason:
-            return False
+        # no longer require a structured absence_reason; remarks may contain info
+        # (keep absence_reason arg only for backwards compatibility)
         
         date_key = attendance_date.isoformat()
         
@@ -199,10 +198,7 @@ class AttendanceHashTable:
         
         record = self._attendance_db[employee_id][date_key]
         
-        # Validate ABSENT status requires reason
-        if kwargs.get('status') == 'ABSENT' and not kwargs.get('absence_reason'):
-            if not record.get('absence_reason'):
-                return False
+        # legacy support: no special validation required (remarks hold any detail)
         
         record.update(kwargs)
         return True

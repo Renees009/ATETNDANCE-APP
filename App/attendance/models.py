@@ -51,25 +51,13 @@ class Attendance(models.Model):
         ('LATE', 'Late'),
     ]
     
-    ABSENCE_REASONS = [
-        ('SICK', 'Sick Leave'),
-        ('PERSONAL', 'Personal Reason'),
-        ('EMERGENCY', 'Emergency'),
-        ('OTHER', 'Other'),
-    ]
-    
+    # free‑text reason/notes are stored in `remarks` now; there is no separate
+    # absence_reason field to avoid migration drift.
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name='attendance_records')
     attendance_date = models.DateField(db_index=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES)
     check_in_time = models.TimeField(null=True, blank=True)
     check_out_time = models.TimeField(null=True, blank=True)
-    absence_reason = models.CharField(
-        max_length=20, 
-        choices=ABSENCE_REASONS, 
-        null=True, 
-        blank=True,
-        
-    )
     remarks = models.TextField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -85,20 +73,24 @@ class Attendance(models.Model):
     
     def __str__(self):
         status_display = self.get_status_display()
-        if self.status == 'ABSENT':
-            reason = f" ({self.get_absence_reason_display()})" if self.absence_reason else ""
-            return f"{self.employee.employee_id} - {self.attendance_date} ({status_display}{reason})"
+        # include remarks if available for absences or special entries
+        if self.remarks:
+            return f"{self.employee.employee_id} - {self.attendance_date} ({status_display}) – {self.remarks}"
         return f"{self.employee.employee_id} - {self.attendance_date} ({status_display})"
     
     def is_editable(self, user=None):
         """
         Check if attendance record can be edited.
-        - Non-admin users: Can only edit within 1 month from creation date
-        - Admin users: Can edit any record
+        - Records for the current day may **never** be modified once submitted
+        - Non-admin users: Can edit records older than a day but only within 30 days
+        - Admin users: Can edit any record (including today's)
         """
+        today = timezone.localdate()
+        # prevent editing today by anybody except staff
+        if self.attendance_date == today and not (user and user.is_staff):
+            return False
         if user and user.is_staff:
             return True
-        
         one_month_ago = timezone.now() - timedelta(days=30)
         return self.created_at >= one_month_ago
     

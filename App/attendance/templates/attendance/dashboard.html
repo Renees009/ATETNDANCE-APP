@@ -64,41 +64,5 @@
     </div>
 </div>
 
-<div class="row mt-4">
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">📋 Quick Navigation</h5>
-            </div>
-            <div class="card-body">
-                <ul class="list-group list-group-flush">
-                    <li class="list-group-item"><a href="{% url 'attendance:employee_list' %}">View All Employees</a></li>
-                    <li class="list-group-item"><a href="{% url 'attendance:attendance_history' %}">View Attendance History</a></li>
-                    <li class="list-group-item"><a href="{% url 'attendance:attendance_by_month' %}">View by Month</a></li>
-                    <li class="list-group-item"><a href="{% url 'attendance:attendance_by_year' %}">View by Year</a></li>
-                </ul>
-            </div>
-        </div>
-    </div>
 
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">📝 System Information</h5>
-            </div>
-            <div class="card-body">
-                <p><strong>Today's Date:</strong> {{ today|date:"F j, Y" }}</p>
-                <p><strong>Current Status:</strong> <span class="badge bg-success">Active</span></p>
-                <p><strong>Features:</strong></p>
-                <ul>
-                    <li>Hash table based attendance storage</li>
-                    <li>30-day edit window for attendance records</li>
-                    <li>Admin override capability</li>
-                    <li>Comprehensive attendance reports</li>
-                    <li>Multiple viewing filters</li>
-                </ul>
-            </div>
-        </div>
-    </div>
-</div>
 {% endblock %}

@@ -51,7 +51,6 @@
                             <th>Check In</th>
                             <th>Check Out</th>
                             <th>Absence Reason</th>
-                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -75,18 +74,11 @@
                             </td>
                             <td>{{ record.check_in_time|default:"--" }}</td>
                             <td>{{ record.check_out_time|default:"--" }}</td>
-                            <td>{{ record.get_absence_reason_display|default:"--" }}</td>
-                            <td>
-                                {% if record.is_editable %}
-                                    <a href="{% url 'attendance:edit_attendance' record.id %}" class="btn btn-sm btn-warning">Edit</a>
-                                {% else %}
-                                    <span class="badge bg-secondary">Read-only</span>
-                                {% endif %}
-                            </td>
+                            <td>{{ record.remarks|default:"--" }}</td>
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="8" class="text-center py-4">No attendance records for this date.</td>
+                            <td colspan="7" class="text-center py-4">No attendance records for this date.</td>
                         </tr>
                         {% endfor %}
                     </tbody>

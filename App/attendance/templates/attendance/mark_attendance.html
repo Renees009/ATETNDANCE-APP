@@ -29,6 +29,7 @@
                     <div class="mb-3">
                         <label for="{{ form.attendance_date.id_for_label }}" class="form-label">{{ form.attendance_date.label }}</label>
                         {{ form.attendance_date }}
+                        <small class="text-muted d-block mt-1">Only today&#39;s date is allowed; the field is locked.</small>
                         {% if form.attendance_date.errors %}
                             <div class="text-danger small">{{ form.attendance_date.errors }}</div>
                         {% endif %}
@@ -37,25 +38,19 @@
                     <div class="mb-3">
                         <label for="{{ form.status.id_for_label }}" class="form-label">{{ form.status.label }}</label>
                         {{ form.status }}
-                        <small class="text-muted d-block mt-2">
-                            <strong>Status explanation:</strong><br>
-                            • <strong>Present:</strong> Employee was present all day<br>
-                            • <strong>Absent:</strong> Employee did not come (reason required)<br>
-                            • <strong>Working Leave:</strong> Approved leave with work authorization<br>
-                            • <strong>NFD:</strong> No Full Day / Half Day<br>
-                            • <strong>Late:</strong> Employee arrived late
-                        </small>
+                        
                         {% if form.status.errors %}
                             <div class="text-danger small">{{ form.status.errors }}</div>
                         {% endif %}
                     </div>
 
+                    <!-- reason/remarks field is now used for both absence and work-from-home explanations -->
                     <div class="mb-3">
-                        <label for="{{ form.absence_reason.id_for_label }}" class="form-label">{{ form.absence_reason.label }}</label>
-                        {{ form.absence_reason }}
-                        <small class="text-muted d-block mt-2">Mandatory when status is "Absent"</small>
-                        {% if form.absence_reason.errors %}
-                            <div class="text-danger small">{{ form.absence_reason.errors }}</div>
+                        <label for="{{ form.remarks.id_for_label }}" class="form-label">{{ form.remarks.label }}</label>
+                        {{ form.remarks }}
+                        <small class="text-muted d-block mt-2">Provide a reason for  "Absent" or "Working Leave" </small>
+                        {% if form.remarks.errors %}
+                            <div class="text-danger small">{{ form.remarks.errors }}</div>
                         {% endif %}
                     </div>
 
@@ -67,21 +62,8 @@
                         {% endif %}
                     </div>
 
-                    <div class="mb-3">
-                        <label for="{{ form.check_out_time.id_for_label }}" class="form-label">{{ form.check_out_time.label }}</label>
-                        {{ form.check_out_time }}
-                        {% if form.check_out_time.errors %}
-                            <div class="text-danger small">{{ form.check_out_time.errors }}</div>
-                        {% endif %}
-                    </div>
+                
 
-                    <div class="mb-3">
-                        <label for="{{ form.remarks.id_for_label }}" class="form-label">{{ form.remarks.label }}</label>
-                        {{ form.remarks }}
-                        {% if form.remarks.errors %}
-                            <div class="text-danger small">{{ form.remarks.errors }}</div>
-                        {% endif %}
-                    </div>
 
                     {% if form.non_field_errors %}
                     <div class="alert alert-danger" role="alert">
@@ -92,6 +74,8 @@
                     {% endif %}
 
                     <button type="submit" class="btn btn-success">Save Attendance</button>
+                    <!-- placeholder for dynamic warnings -->
+                    <div id="record-warning" class="alert alert-warning d-none" role="alert"></div>
                 </form>
             </div>
         </div>
@@ -109,6 +93,8 @@
                             <th>Employee</th>
                             <th>Status</th>
                             <th>Check In</th>
+                            <th>Check Out</th>
+                            <th>Reson for Absent 0r Work from home </th>
                         </tr>
                     </thead>
                     <tbody>
@@ -126,10 +112,12 @@
                                 ">{{ record.get_status_display }}</span>
                             </td>
                             <td>{{ record.check_in_time|default:"--" }}</td>
+                            <td>{{ record.check_out_time|default:"--" }}</td>
+                            <td>{{ record.remarks|default:"--" }}</td>
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="3" class="text-center py-3">No attendance records for today.</td>
+                            <td colspan="5" class="text-center py-3">No attendance records for today.</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -138,4 +126,50 @@
         </div>
     </div>
 </div>
+
+<script>
+// Pass recorded employee ids from context to JS
+const recordedIds = {{ recorded_ids|safe }};
+
+function checkEmployee() {
+    const empSelect = document.querySelector('#id_employee');
+    const warning = document.getElementById('record-warning');
+    const submitBtn = document.querySelector('button[type=submit]');
+    if (!empSelect) return;
+    const val = empSelect.value;
+    if (recordedIds.includes(parseInt(val))) {
+        warning.textContent = 'Attendance has already been marked for this employee today.';
+        warning.classList.remove('d-none');
+        submitBtn.disabled = true;
+    } else {
+        warning.classList.add('d-none');
+        submitBtn.disabled = false;
+    }
+}
+
+function checkStatus() {
+    const status = document.querySelector('#id_status');
+    const remarks = document.querySelector('#id_remarks');
+    if (!status || !remarks) return;
+    if (status.value === 'ABSENT' || status.value === 'WORKING_LEAVE') {
+        remarks.required = true;
+    } else {
+        remarks.required = false;
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const empSelect = document.querySelector('#id_employee');
+    const status = document.querySelector('#id_status');
+    if (empSelect) {
+        empSelect.addEventListener('change', checkEmployee);
+        checkEmployee();
+    }
+    if (status) {
+        status.addEventListener('change', checkStatus);
+        checkStatus();
+    }
+});
+</script>
+
 {% endblock %}
