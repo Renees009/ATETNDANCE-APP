@@ -48,7 +48,7 @@
                     <div class="mb-3">
                         <label for="{{ form.remarks.id_for_label }}" class="form-label">{{ form.remarks.label }}</label>
                         {{ form.remarks }}
-                        <small class="text-muted d-block mt-2">Provide a reason for  "Absent" or "Working Leave" </small>
+                        <small class="text-muted d-block mt-2">Provide a reason for "Absent" or "Work From Home"</small>
                         {% if form.remarks.errors %}
                             <div class="text-danger small">{{ form.remarks.errors }}</div>
                         {% endif %}
@@ -94,7 +94,7 @@
                             <th>Status</th>
                             <th>Check In</th>
                             <th>Check Out</th>
-                            <th>Reson for Absent 0r Work from home </th>
+                            <th>Reason for Absent or Work From Home</th>
                         </tr>
                     </thead>
                     <tbody>

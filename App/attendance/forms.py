@@ -51,6 +51,14 @@ class AttendanceForm(forms.ModelForm):
         self.fields['attendance_date'].required = False  # disable validation, we'll enforce in clean()
         self.fields['attendance_date'].help_text = "Attendance for today only"
         
+        # Limit status dropdown to the four required options; NFD is omitted
+        if 'status' in self.fields:
+            allowed = {'PRESENT', 'ABSENT', 'WORKING_LEAVE', 'LATE'}
+            self.fields['status'].choices = [
+                (key, label) for key, label in self.fields['status'].choices
+                if key in allowed
+            ]
+        
         # Check if this is an edit and if record is editable
         if instance and instance.pk:
             # Check editing restrictions
@@ -83,7 +91,7 @@ class AttendanceForm(forms.ModelForm):
             )
         if status == 'WORKING_LEAVE' and not remarks:
             raise ValidationError(
-                "Please provide a brief explanation for work-from-home/working leave.",
+                "Please provide a brief explanation for work-from-home.",
                 code='wfh_requires_reason'
             )
         
@@ -147,11 +155,10 @@ class AttendanceFilterForm(forms.Form):
         ('', 'All Statuses'),
         ('PRESENT', 'Present'),
         ('ABSENT', 'Absent'),
-        ('WORKING_LEAVE', 'Working Leave'),
-        ('NFD', 'No Full Day / Half Day'),
+        ('WORKING_LEAVE', 'Work From Home'),
         ('LATE', 'Late'),
     ]
-    
+
     employee = forms.ModelChoiceField(
         queryset=Employee.objects.all(),
         required=False,

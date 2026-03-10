@@ -29,7 +29,8 @@ def dashboard(request):
         attendance_date=today,
         status='ABSENT'
     ).count()
-    working_leave_today = Attendance.objects.filter(
+    # count entries marked as WFH (previously working leave)
+    wfh_today = Attendance.objects.filter(
         attendance_date=today,
         status='WORKING_LEAVE'
     ).count()
@@ -38,7 +39,7 @@ def dashboard(request):
         'total_employees': total_employees,
         'present_today': present_today,
         'absent_today': absent_today,
-        'working_leave_today': working_leave_today,
+        'wfh_today': wfh_today,
         'today': today,
     }
     return render(request, 'attendance/dashboard.html', context)
@@ -392,7 +393,7 @@ def attendance_summary(request):
                     summary['present'] = record['count']
                 elif record['status'] == 'ABSENT':
                     summary['absent'] = record['count']
-                elif record['status'] == 'WORKING FROM HOME':
+                elif record['status'] == 'WORKING_LEAVE':
                     summary['working_leave'] = record['count']
                 # elif record['status'] == 'NFD':
                 #     summary['nfd'] = record['count']
@@ -403,7 +404,7 @@ def attendance_summary(request):
             # we no longer track structured absence reasons; remarks hold any detail
             summary['absent_reasons'] = {}
             
-            # Calculate attendance percentage (excluding working leaves)
+            # Calculate attendance percentage (excluding work-from-home days)
             working_days = summary['total_days'] - summary['working_leave']
             if working_days > 0:
                 summary['attendance_percentage'] = round(

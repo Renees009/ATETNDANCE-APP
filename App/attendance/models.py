@@ -46,7 +46,8 @@ class Attendance(models.Model):
     STATUS_CHOICES = [
         ('PRESENT', 'Present'),
         ('ABSENT', 'Absent'),
-        ('WORKING_LEAVE', 'Working Leave'),
+        # label changed per user request to display 'Work From Home'
+        ('WORKING_LEAVE', 'Work From Home'),
         ('NFD', 'No Full Day / Half Day'),
         ('LATE', 'Late'),
     ]
@@ -120,6 +121,7 @@ class AttendanceReport(models.Model):
     absent_with_reason = models.TextField(default='{}')  # JSON field for absence reasons
     late_days = models.IntegerField()
     half_days = models.IntegerField()
+    # count for work‑from‑home records (previously called working_leave)
     working_leave_days = models.IntegerField(default=0)
     nfd_days = models.IntegerField(default=0, verbose_name="No Full Day / Half Days")
     attendance_percentage = models.DecimalField(max_digits=5, decimal_places=2)

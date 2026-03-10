@@ -53,7 +53,8 @@ class AttendanceModelTest(TestCase):
         self.assertTrue(self.attendance.is_editable(DummyUser()))
 
     def test_wfh_converts_to_present(self):
-        # create using form save logic without submitting request
+        # create record simulating a work-from-home entry; form logic should
+        # translate it the same way as before
         from .forms import AttendanceForm
         data = {
             'employee': self.employee.id,

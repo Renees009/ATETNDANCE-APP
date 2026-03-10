@@ -19,7 +19,7 @@ class EmployeeAdmin(admin.ModelAdmin):
         }),
         ('Timestamps', {
             'fields': ('created_at', 'updated_at'),
-            'classes': ('collapse',)
+            'classes': ('collapse',) 
         }),
     )
     
@@ -73,6 +73,7 @@ class AttendanceAdmin(admin.ModelAdmin):
         status_colors = {
             'PRESENT': 'green',
             'ABSENT': 'red',
+            # WORKING_LEAVE rows represent work-from-home entries
             'WORKING_LEAVE': 'blue',
             'NFD': 'orange',
             'LATE': 'gold',

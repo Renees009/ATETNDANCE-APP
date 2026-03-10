@@ -34,7 +34,7 @@ Four required status types implemented:
 |--------|------|-------------|
 | **Present** | `PRESENT` | Employee present all day |
 | **Absent** | `ABSENT` | Employee absent (reason mandatory) |
-| **Working Leave** | `WORKING_LEAVE` | Approved leave with work authorization |
+| **Work From Home (WFH)** | `WORKING_LEAVE` | Approved leave with work authorization (recorded as WFH) |
 | **NFD / Half Day** | `NFD` | No Full Day / Half Day work |
 | **Late** | `LATE` | Employee arrived late |
 
@@ -196,7 +196,7 @@ Features:
    - Present days count
    - Absent days count
    - Late days count
-   - Working leave days
+   - Work-from-home days (stored as WORKING_LEAVE)
    - NFD / Half days
 
 2. **Absence Breakdown**
@@ -204,7 +204,7 @@ Features:
    - Detailed reason categorization
 
 3. **Attendance Percentage**
-   - Calculated excluding working leave days
+   - Calculated excluding work-from-home days
    - Color-coded (Green ≥90%, Orange ≥75%, Red <75%)
    - Progress bar visualization
 
