@@ -393,7 +393,7 @@ def attendance_summary(request):
                     summary['present'] = record['count']
                 elif record['status'] == 'ABSENT':
                     summary['absent'] = record['count']
-                elif record['status'] == 'WORKING_LEAVE':
+                elif record['status'] == 'WORKING FROM HOME':
                     summary['working_leave'] = record['count']
                 # elif record['status'] == 'NFD':
                 #     summary['nfd'] = record['count']
@@ -404,7 +404,7 @@ def attendance_summary(request):
             # we no longer track structured absence reasons; remarks hold any detail
             summary['absent_reasons'] = {}
             
-            # Calculate attendance percentage (excluding work-from-home days)
+            # Calculate attendance percentage (excluding working leaves)
             working_days = summary['total_days'] - summary['working_leave']
             if working_days > 0:
                 summary['attendance_percentage'] = round(
