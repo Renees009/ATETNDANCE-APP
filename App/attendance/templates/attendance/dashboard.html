@@ -8,6 +8,9 @@
         <div class="stat-card">
             <div class="stat-number">{{ total_employees }}</div>
             <div class="stat-label">Total Employees</div>
+            <div class="mt-2">
+                <a href="{% url 'attendance:employee_list' %}" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
         </div>
     </div>
     <div class="col-md-3">
@@ -43,6 +46,11 @@
                             ➕ Add Employee
                         </a>
                     </div>
+                    {% comment %} <div class="col-md-3 mb-2">
+                        <a href="{% url 'attendance:employee_list' %}" class="btn btn-secondary btn-block" style="width: 100%;">
+                            👥 View All Employees
+                        </a>
+                    </div> {% endcomment %}
                     <div class="col-md-3 mb-2">
                         <a href="{% url 'attendance:mark_attendance' %}" class="btn btn-success btn-block" style="width: 100%;">
                             ✓ Mark Attendance
