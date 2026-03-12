@@ -88,34 +88,38 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
-                    <li class="nav-item"><a class="nav-link" href="{% url 'attendance:dashboard' %}">Dashboard</a></li>
-                    
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="employeeDropdown" role="button" data-bs-toggle="dropdown">
-                            Employees
-                        </a>
-                        <ul class="dropdown-menu" aria-labelledby="employeeDropdown">
-                            <li><a class="dropdown-item" href="{% url 'attendance:employee_list' %}">View All</a></li>
-                            <li><a class="dropdown-item" href="{% url 'attendance:add_employee' %}">Add New</a></li>
-                        </ul>
-                    </li>
-                    
-                    <li class="nav-item"><a class="nav-link" href="{% url 'attendance:mark_attendance' %}">Mark Attendance</a></li>
-                    
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="viewDropdown" role="button" data-bs-toggle="dropdown">
-                            View Attendance
-                        </a>
-                        <ul class="dropdown-menu" aria-labelledby="viewDropdown">
-                            <li><a class="dropdown-item" href="{% url 'attendance:attendance_by_date' %}">By Date</a></li>
-                            <li><a class="dropdown-item" href="{% url 'attendance:attendance_by_month' %}">By Month</a></li>
-                            <li><a class="dropdown-item" href="{% url 'attendance:attendance_by_year' %}">By Year</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="{% url 'attendance:attendance_history' %}">Full History</a></li>
-                        </ul>
-                    </li>
-                    
-                    <li class="nav-item"><a class="nav-link" href="{% url 'attendance:attendance_summary' %}">Reports</a></li>
+                    {% if not request.session.portal_employee %}
+                        <li class="nav-item"><a class="nav-link" href="{% url 'attendance:dashboard' %}">Dashboard</a></li>
+                        
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="employeeDropdown" role="button" data-bs-toggle="dropdown">
+                                Employees
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="employeeDropdown">
+                                <li><a class="dropdown-item" href="{% url 'attendance:employee_list' %}">View All</a></li>
+                                <li><a class="dropdown-item" href="{% url 'attendance:add_employee' %}">Add New</a></li>
+                            </ul>
+                        </li>
+                        
+                        <li class="nav-item"><a class="nav-link" href="{% url 'attendance:mark_attendance' %}">Mark Attendance</a></li>
+                        
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="viewDropdown" role="button" data-bs-toggle="dropdown">
+                                View Attendance
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="viewDropdown">
+                                <li><a class="dropdown-item" href="{% url 'attendance:attendance_by_date' %}">By Date</a></li>
+                                <li><a class="dropdown-item" href="{% url 'attendance:attendance_by_month' %}">By Month</a></li>
+                                <li><a class="dropdown-item" href="{% url 'attendance:attendance_by_year' %}">By Year</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{% url 'attendance:attendance_history' %}">Full History</a></li>
+                            </ul>
+                        </li>
+                        
+                        <li class="nav-item"><a class="nav-link" href="{% url 'attendance:attendance_summary' %}">Reports</a></li>
+                    {% else %}
+                        <li class="nav-item"><a class="nav-link" href="{% url 'attendance:login' %}">Logout</a></li>
+                    {% endif %}
                 </ul>
             </div>
         </div>

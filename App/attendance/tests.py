@@ -135,3 +135,14 @@ class AttendanceModelTest(TestCase):
             # after calling, a record for self.employee should exist and be ABSENT
             rec = Attendance.objects.get(employee=self.employee, attendance_date=date.today())
             self.assertEqual(rec.status, 'ABSENT')
+
+    def test_choose_employee_and_override(self):
+        # posting to choose_employee should redirect to the portal
+        from django.urls import reverse
+        resp = self.client.post(reverse('attendance:choose_employee'), {'employee': self.employee.employee_id})
+        self.assertRedirects(resp, reverse('attendance:employee_home', args=[self.employee.employee_id]))
+
+        # accessing mark_attendance with override should lock employee field
+        resp2 = self.client.get(reverse('attendance:mark_attendance') + f'?employee_id={self.employee.employee_id}')
+        self.assertContains(resp2, 'Recording attendance for')
+        self.assertContains(resp2, self.employee.get_full_name())

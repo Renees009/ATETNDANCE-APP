@@ -4,9 +4,13 @@ from . import views
 app_name = 'attendance'
 
 urlpatterns = [
+    # landing/login
+    path('', views.login_view, name='login'),
     # Dashboard and Employee Management
-    path('', views.dashboard, name='dashboard'),
+    path('dashboard/', views.dashboard, name='dashboard'),
     path('employees/', views.employee_list, name='employee_list'),
+    path('employees/choose/', views.choose_employee, name='choose_employee'),
+    path('employee-portal/<str:employee_id>/', views.employee_home, name='employee_home'),
     path('employees/add/', views.add_employee, name='add_employee'),
     path('employees/<str:employee_id>/', views.employee_detail, name='employee_detail'),
     path('employees/<str:employee_id>/edit/', views.edit_employee, name='edit_employee'),

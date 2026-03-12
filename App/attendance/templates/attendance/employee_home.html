@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block title %}Employee Portal - {{ employee.get_full_name }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h2>Employee Portal: {{ employee.get_full_name }}</h2>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <a href="{% url 'attendance:mark_attendance' %}?employee_id={{ employee.employee_id }}" class="btn btn-success btn-block mb-2">📝 Mark Attendance</a>
+    </div>
+    <div class="col-md-6">
+        <a href="{% url 'attendance:attendance_summary' %}?employee={{ employee.pk }}" class="btn btn-info btn-block mb-2">📊 View My Reports</a>
+    </div>
+</div>
+{% endblock %}

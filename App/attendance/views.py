@@ -16,6 +16,39 @@ from .forms import (
 from .hash_table_util import attendance_hash_table
 
 
+def login_view(request):
+    """Simple role-selection landing page.
+
+    Clicking 'Admin' redirects to the normal dashboard.  Clicking 'Employee'
+    takes the user to a page where they pick an employee record.
+
+    Also clear any existing employee-portal session state.
+    """
+    request.session.pop('portal_employee', None)
+    return render(request, 'attendance/login.html')
+
+
+@require_http_methods(["GET", "POST"])
+def choose_employee(request):
+    """Allow an employee user to pick their own record."""
+    employees = Employee.objects.filter(is_active=True)
+    if request.method == 'POST':
+        emp_id = request.POST.get('employee')
+        if emp_id:
+            # store choice in session
+            request.session['portal_employee'] = emp_id
+            return redirect('attendance:employee_home', employee_id=emp_id)
+    return render(request, 'attendance/choose_employee.html', {'employees': employees})
+
+
+def employee_home(request, employee_id):
+    """Landing page for a selected employee showing their personal links."""
+    # ensure session reflects current employee
+    request.session['portal_employee'] = employee_id
+    employee = get_object_or_404(Employee, employee_id=employee_id)
+    return render(request, 'attendance/employee_home.html', {'employee': employee})
+
+
 def dashboard(request):
     """Dashboard view showing attendance statistics"""
     today = datetime.today().date()
@@ -155,10 +188,25 @@ def mark_attendance(request):
             Attendance.objects.bulk_create(to_create)
             # refresh list after inserting
     
+    # check if we were asked to restrict to a particular employee (employee portal)
+    employee_id = request.GET.get('employee_id') or request.POST.get('employee_id')
+    emp_override = None
+    if employee_id:
+        try:
+            emp_override = Employee.objects.get(employee_id=employee_id)
+        except Employee.DoesNotExist:
+            emp_override = None
+
     if request.method == 'POST':
         form = AttendanceForm(request.POST, user=request.user)
+        # if we have an override, ensure user cannot change it
+        if emp_override and 'employee' in form.fields:
+            form.fields['employee'].queryset = Employee.objects.filter(pk=emp_override.pk)
         if form.is_valid():
             attendance = form.save(commit=False)
+            # if employee override present, force it
+            if emp_override:
+                attendance.employee = emp_override
             # ensure check-in time is populated (form logic should handle it but double-check)
             if not attendance.check_in_time:
                 attendance.check_in_time = timezone.localtime().time().replace(microsecond=0)
@@ -179,16 +227,30 @@ def mark_attendance(request):
                 messages.warning(request, f'Attendance marked but hash table sync failed: {str(e)}')
 
             messages.success(request, 'Attendance marked successfully!')
+            if emp_override:
+                from django.urls import reverse
+                return redirect(f"{reverse('attendance:mark_attendance')}?employee_id={emp_override.employee_id}")
             return redirect('attendance:mark_attendance')
         else:
             for field, errors in form.errors.items():
                 for error in errors:
                     messages.error(request, f"{field}: {error}")
     else:
-        form = AttendanceForm(user=request.user)
+        # prepopulate employee field for override
+        if emp_override:
+            form = AttendanceForm(user=request.user, initial={'employee': emp_override.pk})
+            # lock the dropdown so it can't be changed
+            if 'employee' in form.fields:
+                form.fields['employee'].widget.attrs['readonly'] = True
+                form.fields['employee'].widget.attrs['disabled'] = True
+        else:
+            form = AttendanceForm(user=request.user)
     
     # Show today's attendance records (refresh after potential auto‑absent)
     today_attendance = Attendance.objects.filter(attendance_date=today).select_related('employee')
+    # if override, filter the attendance listing as well
+    if emp_override:
+        today_attendance = today_attendance.filter(employee=emp_override)
     recorded_ids = list(today_attendance.values_list('employee_id', flat=True))
     
     context = {
@@ -196,6 +258,7 @@ def mark_attendance(request):
         'today_attendance': today_attendance,
         'today': today,
         'recorded_ids': recorded_ids,
+        'employee_override': emp_override,
     }
     return render(request, 'attendance/mark_attendance.html', context)
 
@@ -346,6 +409,8 @@ def attendance_by_year(request):
 
 def attendance_summary(request):
     """Generate and display attendance summary reports"""
+    # allow employee filter via querystring for employee portal
+    employee_param = request.GET.get('employee')
     form = AttendanceSummaryFilterForm(request.GET)
     summaries = []
     
@@ -353,6 +418,13 @@ def attendance_summary(request):
         month = form.cleaned_data.get('month')
         year = form.cleaned_data.get('year')
         employee = form.cleaned_data.get('employee')
+        
+        # support portal override
+        if employee_param:
+            try:
+                employee = Employee.objects.get(pk=employee_param)
+            except Employee.DoesNotExist:
+                employee = None
         
         # Default to current month/year
         if not month:

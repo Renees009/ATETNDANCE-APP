@@ -18,6 +18,10 @@
             <div class="card-body">
                 <form method="POST">
                     {% csrf_token %}
+                    {% if employee_override %}
+                        <p class="text-info">Recording attendance for <strong>{{ employee_override.get_full_name }}</strong>.</p>
+                        <input type="hidden" name="employee_id" value="{{ employee_override.employee_id }}">
+                    {% endif %}
                     <div class="mb-3">
                         <label for="{{ form.employee.id_for_label }}" class="form-label">{{ form.employee.label }}</label>
                         {{ form.employee }}
