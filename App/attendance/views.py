@@ -158,7 +158,11 @@ def mark_attendance(request):
     if request.method == 'POST':
         form = AttendanceForm(request.POST, user=request.user)
         if form.is_valid():
-            attendance = form.save()
+            attendance = form.save(commit=False)
+            # ensure check-in time is populated (form logic should handle it but double-check)
+            if not attendance.check_in_time:
+                attendance.check_in_time = timezone.localtime().time().replace(microsecond=0)
+            attendance.save()
 
             # Also populate hash table for efficient retrieval
             try:

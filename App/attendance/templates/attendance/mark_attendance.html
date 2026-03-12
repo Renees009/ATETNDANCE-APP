@@ -169,6 +169,19 @@ document.addEventListener('DOMContentLoaded', function() {
         status.addEventListener('change', checkStatus);
         checkStatus();
     }
+
+    // keep the disabled check-in time input showing the current local clock
+    function refreshCheckIn() {
+        const input = document.querySelector('#id_check_in_time');
+        if (!input) return;
+        const now = new Date();
+        // format hh:mm:ss or hh:mm depending on time input behavior
+        const pad = n => String(n).padStart(2, '0');
+        const value = pad(now.getHours()) + ':' + pad(now.getMinutes()) + ':' + pad(now.getSeconds());
+        input.value = value;
+    }
+    setInterval(refreshCheckIn, 1000);
+    refreshCheckIn();
 });
 </script>
 

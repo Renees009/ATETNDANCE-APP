@@ -68,6 +68,37 @@ class AttendanceModelTest(TestCase):
         self.assertEqual(record.status, 'PRESENT')
         self.assertIsNotNone(record.check_in_time)
 
+    def test_check_in_time_auto_and_readonly(self):
+        """New attendance forms should show and lock the current time.
+        Submitting without providing a value still results in a timestamp.
+        """
+        from .forms import AttendanceForm
+        from django.utils import timezone
+
+        # fresh empty form should have field disabled and with an initial value
+        form = AttendanceForm(user=None)
+        self.assertTrue(form.fields['check_in_time'].widget.attrs.get('disabled'))
+        self.assertIsNotNone(form.fields['check_in_time'].initial)
+        self.assertIsInstance(form.fields['check_in_time'].initial, timezone.datetime.time)
+
+        # simulate submission where check_in_time is omitted (disabled inputs are not sent)
+        data = {
+            'employee': self.employee.id,
+            'attendance_date': date.today(),
+            'status': 'PRESENT',
+        }
+        form2 = AttendanceForm(data=data, user=None)
+        self.assertTrue(form2.is_valid())
+        record = form2.save()
+        # the record should have been stamped with the current time
+        self.assertIsNotNone(record.check_in_time)
+        self.assertIsInstance(record.check_in_time, timezone.datetime.time)
+        # value should be within a few minutes of now
+        now = timezone.localtime().time()
+        delta = (timezone.datetime.combine(timezone.localdate(), now) -
+                 timezone.datetime.combine(timezone.localdate(), record.check_in_time)).seconds
+        self.assertLess(delta, 300)  # within 5 minutes
+
     def test_only_today_allowed(self):
         from .forms import AttendanceForm
         data = {

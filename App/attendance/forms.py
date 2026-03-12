@@ -51,6 +51,17 @@ class AttendanceForm(forms.ModelForm):
         self.fields['attendance_date'].required = False  # disable validation, we'll enforce in clean()
         self.fields['attendance_date'].help_text = "Attendance for today only"
         
+        # Automatically record check-in time for new entries and prevent user edits
+        if 'check_in_time' in self.fields:
+            now_time = timezone.localtime().time().replace(microsecond=0)
+            # only set initial on a fresh form (not editing an existing attendance)
+            if not instance or not getattr(instance, 'pk', None):
+                self.fields['check_in_time'].initial = now_time
+                self.fields['check_in_time'].widget.attrs['readonly'] = True
+                self.fields['check_in_time'].widget.attrs['disabled'] = True
+                self.fields['check_in_time'].required = False  # value will be added in clean()
+                self.fields['check_in_time'].help_text = "Automatically recorded; cannot be edited."
+        
         # Limit status dropdown to the four required options; NFD is omitted
         if 'status' in self.fields:
             allowed = {'PRESENT', 'ABSENT', 'WORKING_LEAVE', 'LATE'}
@@ -98,6 +109,12 @@ class AttendanceForm(forms.ModelForm):
         # Validate: Check-in and check-out times logic
         check_in = cleaned_data.get('check_in_time')
         check_out = cleaned_data.get('check_out_time')
+        
+        # if the form was rendered with disabled check_in_time (common for new records),
+        # the field may not be submitted.  Automatically populate it using server time.
+        if not check_in:
+            check_in = timezone.localtime().time().replace(microsecond=0)
+            cleaned_data['check_in_time'] = check_in
         
         if check_in and check_out and check_in >= check_out:
             raise ValidationError(
