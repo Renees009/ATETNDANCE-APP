@@ -469,10 +469,12 @@ def attendance_summary(request):
                     summary['present'] = record['count']
                 elif record['status'] == 'ABSENT':
                     summary['absent'] = record['count']
-                elif record['status'] == 'WORKING FROM HOME':
+                
+                elif record['status'] == 'WORKING_LEAVE':
                     summary['working_leave'] = record['count']
-                # elif record['status'] == 'NFD':
-                #     summary['nfd'] = record['count']
+                
+                elif record['status'] == 'NFD':
+                    summary['nfd'] = record['count']
                 elif record['status'] == 'LATE':
                     summary['late'] = record['count']
             
