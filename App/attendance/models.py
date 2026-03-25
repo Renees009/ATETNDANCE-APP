@@ -118,14 +118,14 @@ class AttendanceReport(models.Model):
     total_days = models.IntegerField()
     present_days = models.IntegerField()
     absent_days = models.IntegerField()
-    absent_with_reason = models.TextField(default='{}')  # JSON field for absence reasons
+    absent_with_reason = models.TextField()  # JSON field for absence reasons
     late_days = models.IntegerField()
     half_days = models.IntegerField()
     # count for work‑from‑home records (previously called working_leave)
-    working_leave_days = models.IntegerField(default=0)
+    working_leave_days = models.IntegerField()
     nfd_days = models.IntegerField(default=0, verbose_name="No Full Day / Half Days")
     attendance_percentage = models.DecimalField(max_digits=5, decimal_places=2)
-    generated_at = models.DateTimeField(auto_now_add=True)
+    generated_at = models.DateTimeField()
     
     class Meta:
         ordering = ['-year', '-month']
