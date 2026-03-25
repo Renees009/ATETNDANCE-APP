@@ -14,6 +14,11 @@ from .forms import (
     AttendanceSummaryFilterForm
 )
 from .hash_table_util import attendance_hash_table
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
+import json
+from django.db.models import Q
 
 
 def login_view(request):
@@ -25,7 +30,7 @@ def login_view(request):
     Also clear any existing employee-portal session state.
     """
     request.session.pop('portal_employee', None)
-    return render(request, 'attendance/login.html')
+    return render(request, 'frontend/src/Components/login.js')
 
 
 @require_http_methods(["GET", "POST"])
@@ -38,7 +43,7 @@ def choose_employee(request):
             # store choice in session
             request.session['portal_employee'] = emp_id
             return redirect('attendance:employee_home', employee_id=emp_id)
-    return render(request, 'attendance/choose_employee.html', {'employees': employees})
+    return render(request, 'frontend/src/Components/choose_employee.js', {'employees': employees})
 
 
 def employee_home(request, employee_id):
@@ -46,7 +51,7 @@ def employee_home(request, employee_id):
     # ensure session reflects current employee
     request.session['portal_employee'] = employee_id
     employee = get_object_or_404(Employee, employee_id=employee_id)
-    return render(request, 'attendance/employee_home.html', {'employee': employee})
+    return render(request, 'frontend/src/Components/employee_home.js', {'employee': employee})
 
 
 def dashboard(request):
@@ -75,7 +80,35 @@ def dashboard(request):
         'wfh_today': wfh_today,
         'today': today,
     }
-    return render(request, 'attendance/dashboard.html', context)
+    return render(request, 'frontend/src/Components/dashboard.js', context)
+
+@csrf_exempt
+def dashboard_api(request):
+    """API endpoint for dashboard stats"""
+    today = datetime.today().date()
+    
+    total_employees = Employee.objects.filter(is_active=True).count()
+    present_today = Attendance.objects.filter(
+        attendance_date=today,
+        status='PRESENT'
+    ).count()
+    absent_today = Attendance.objects.filter(
+        attendance_date=today,
+        status='ABSENT'
+    ).count()
+    wfh_today = Attendance.objects.filter(
+        attendance_date=today,
+        status='WORKING_LEAVE'
+    ).count()
+    
+    context = {
+        'total_employees': total_employees,
+        'present_today': present_today,
+        'absent_today': absent_today,
+        'wfh_today': wfh_today,
+        'today': today.isoformat(),
+    }
+    return JsonResponse(context)
 
 
 def employee_list(request):
@@ -101,7 +134,47 @@ def employee_list(request):
         'selected_department': department,
         'departments': Employee.DEPARTMENT_CHOICES,
     }
-    return render(request, 'attendance/employee_list.html', context)
+    return render(request, 'frontend/src/Components/employee_list.js', context)
+
+@csrf_exempt
+def employee_list_api(request):
+    """API endpoint for employee list"""
+    employees = Employee.objects.all().values(
+        'id', 'employee_id', 'first_name', 'last_name', 'email', 
+        'department', 'position', 'is_active'
+    )
+    search_query = request.GET.get('search', '')
+    department = request.GET.get('department', '')
+    
+    if search_query:
+        from django.db.models import Q
+        # Filter for search
+        # Note: values() querysets need .filter before values for Q
+        base_qs = Employee.objects.filter(
+            Q(employee_id__icontains=search_query) |
+            Q(first_name__icontains=search_query) |
+            Q(last_name__icontains=search_query) |
+            Q(email__icontains=search_query)
+        )
+        employees = base_qs.values(
+            'id', 'employee_id', 'first_name', 'last_name', 'email', 
+            'department', 'position', 'is_active'
+        )
+    
+    if department:
+        base_qs = Employee.objects.filter(department=department)
+        employees = base_qs.values(
+            'id', 'employee_id', 'first_name', 'last_name', 'email', 
+            'department', 'position', 'is_active'
+        )
+    
+    departments = [choice[0] for choice in Employee.DEPARTMENT_CHOICES]
+    
+    context = {
+        'employees': list(employees),
+        'departments': departments,
+    }
+    return JsonResponse(context)
 
 
 def employee_detail(request, employee_id):
@@ -119,7 +192,7 @@ def employee_detail(request, employee_id):
         'employee': employee,
         'attendance_records': attendance_records,
     }
-    return render(request, 'attendance/employee_detail.html', context)
+    return render(request, 'frontend/src/Components/employee_detail.js', context)
 
 
 @require_http_methods(["GET", "POST"])
@@ -134,7 +207,7 @@ def add_employee(request):
     else:
         form = EmployeeForm()
     
-    return render(request, 'attendance/add_employee.html', {'form': form})
+    return render(request, 'frontend/src/Components/add_employee.js', {'form': form})
 
 
 @require_http_methods(["GET", "POST"])
@@ -151,7 +224,7 @@ def edit_employee(request, employee_id):
         else:
             form = EmployeeForm(instance=employee)
     
-    return render(request, 'attendance/edit_employee.html', {'form': form, 'employee': employee})
+    return render(request, 'frontend/src/Components/edit_employee.js', {'form': form, 'employee': employee})
 
 
 @require_http_methods(["GET", "POST"])
@@ -260,7 +333,60 @@ def mark_attendance(request):
         'recorded_ids': recorded_ids,
         'employee_override': emp_override,
     }
-    return render(request, 'attendance/mark_attendance.html', context)
+    return render(request, 'frontend/src/Components/mark_attendance.js', context)
+
+@csrf_exempt
+def mark_attendance_api(request):
+    """API endpoint for mark attendance"""
+    if request.method == 'GET':
+        today = timezone.localdate()
+        today_attendance = Attendance.objects.filter(attendance_date=today).select_related('employee').values(
+            'id', 'employee_id', 'employee__first_name', 'employee__last_name', 'status', 
+            'check_in_time', 'check_out_time', 'remarks'
+        )
+        recorded_ids = list(Attendance.objects.filter(attendance_date=today).values_list('employee__id', flat=True))
+        return JsonResponse({
+            'today_attendance': list(today_attendance),
+            'recorded_ids': recorded_ids,
+            'today': today.isoformat()
+        })
+    
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            employee_id = data.get('employee_id')
+            status = data.get('status')
+            remarks = data.get('remarks', '')
+            
+            employee = get_object_or_404(Employee, employee_id=employee_id)
+            
+            # Check duplicate
+            today = timezone.localdate()
+            if Attendance.objects.filter(employee=employee, attendance_date=today).exists():
+                return JsonResponse({'success': False, 'error': 'Already marked today'}, status=400)
+            
+            attendance = Attendance(
+                employee=employee,
+                attendance_date=today,
+                status=status,
+                check_in_time=timezone.localtime().time().replace(microsecond=0),
+                remarks=remarks
+            )
+            attendance.save()
+            
+            # Hash table sync
+            attendance_hash_table.mark_attendance(
+                employee_id=employee.employee_id,
+                attendance_date=today,
+                status=status,
+                check_in_time=str(attendance.check_in_time),
+                remarks=remarks,
+                created_at=attendance.created_at.isoformat()
+            )
+            
+            return JsonResponse({'success': True, 'message': 'Attendance marked'})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)}, status=400)
 
 
 @require_http_methods(["GET", "POST"])
@@ -292,7 +418,7 @@ def edit_attendance(request, attendance_id):
         'attendance': attendance,
         'is_editable': attendance.is_editable(request.user),
     }
-    return render(request, 'attendance/edit_attendance.html', context)
+    return render(request, 'frontend/src/Components/edit_attendance.js', context)
 
 
 def attendance_by_date(request):
@@ -311,7 +437,7 @@ def attendance_by_date(request):
         'selected_date': selected_date,
         'view_type': 'date',
     }
-    return render(request, 'attendance/attendance_by_date.html', context)
+    return render(request, 'frontend/src/Components/attendance_by_date.js', context)
 
 
 def attendance_by_month(request):
@@ -364,7 +490,7 @@ def attendance_by_month(request):
         'selected_year': selected_year,
         'view_type': 'month',
     }
-    return render(request, 'attendance/attendance_by_month.html', context)
+    return render(request, 'frontend/src/Components/attendance_by_month.js', context)
 
 
 def attendance_by_year(request):
@@ -404,7 +530,7 @@ def attendance_by_year(request):
         'selected_year': selected_year,
         'view_type': 'year',
     }
-    return render(request, 'attendance/attendance_by_year.html', context)
+    return render(request, 'frontend/src/Components//attendance_by_year.js', context)
 
 
 def attendance_summary(request):
@@ -497,7 +623,7 @@ def attendance_summary(request):
         'form': form,
         'summaries': summaries,
     }
-    return render(request, 'attendance/attendance_summary.html', context)
+    return render(request, 'frontend/src/Components/attendance_summary.js', context)
 
 
 def attendance_history(request):
@@ -530,7 +656,7 @@ def attendance_history(request):
         'records': records,
         'form': form,
     }
-    return render(request, 'attendance/attendance_history.html', context)
+    return render(request, 'frontend/src/Components/attendance_history,js', context)
 
 
 def attendance_report(request):
@@ -560,4 +686,4 @@ def admin_override_edit(request, attendance_id):
         'attendance': attendance,
         'is_admin_override': True,
     }
-    return render(request, 'attendance/admin_override_edit.html', context)
+    return render(request, 'frontend/src/Components/admin_override_edit.js', context)

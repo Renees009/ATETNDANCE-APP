@@ -29,4 +29,10 @@ urlpatterns = [
     # Reports
     path('attendance-summary/', views.attendance_summary, name='attendance_summary'),
     path('attendance-report/', views.attendance_report, name='attendance_report'),
+    
+    # API endpoints
+    path('api/dashboard/', views.dashboard_api, name='dashboard_api'),
+    path('api/employees/', views.employee_list_api, name='employee_list_api'),
+    path('api/mark-attendance/', views.mark_attendance_api, name='mark_attendance_api'),
 ]
+

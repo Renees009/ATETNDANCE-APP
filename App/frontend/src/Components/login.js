@@ -1,6 +1,24 @@
-import React from "react";
+import React, { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 function Login() {
+  const navigate = useNavigate();
+
+  // Clear any existing session when landing on the login/role selection page
+  useEffect(() => {
+    localStorage.removeItem('authToken');
+  }, []);
+
+  const handleAdminLogin = () => {
+    localStorage.setItem('authToken', 'admin-mock-token');
+    navigate('/dashboard');
+  };
+
+  const handleEmployeeLogin = () => {
+    localStorage.setItem('authToken', 'employee-mock-token');
+    navigate('/employees/choose');
+  };
+
   return (
     <div
       className="d-flex justify-content-center align-items-center"
@@ -15,14 +33,14 @@ function Login() {
         <div className="d-grid gap-2">
 
           {/* Admin */}
-          <a href="/dashboard" className="btn btn-primary">
+          <button onClick={handleAdminLogin} className="btn btn-primary">
             Admin
-          </a>
+          </button>
 
           {/* Employee */}
-          <a href="/choose-employee" className="btn btn-secondary">
+          <button onClick={handleEmployeeLogin} className="btn btn-secondary">
             Employee
-          </a>
+          </button>
 
         </div>
       </div>

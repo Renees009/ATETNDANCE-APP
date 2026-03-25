@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 
 function EmployeeList() {
   const [employees, setEmployees] = useState([]);
@@ -6,7 +7,7 @@ function EmployeeList() {
 
   // Fetch employees
   const fetchEmployees = () => {
-    let url = "http://127.0.0.1:8000/api/employees/";
+    let url = "http://127.0.0.1:8000/attendance/api/employees/";
 
     if (search) {
       url += `?search=${search}`;
@@ -15,7 +16,7 @@ function EmployeeList() {
     fetch(url)
       .then((res) => res.json())
       .then((data) => {
-        setEmployees(data);
+        setEmployees(data.employees || data);
       });
   };
 
@@ -30,9 +31,7 @@ function EmployeeList() {
 
   const clearSearch = () => {
     setSearch("");
-    fetch("http://127.0.0.1:8000/api/employees/")
-      .then((res) => res.json())
-      .then((data) => setEmployees(data));
+    fetchEmployees();
   };
 
   return (
@@ -74,9 +73,9 @@ function EmployeeList() {
         </div>
 
         <div className="col-md-6 text-end">
-          <a href="/add-employee" className="btn btn-success">
+          <Link to="/add-employee" className="btn btn-success">
             ➕ Add New Employee
-          </a>
+          </Link>
         </div>
 
       </div>
@@ -110,7 +109,7 @@ function EmployeeList() {
                 <tbody>
                   {employees.length > 0 ? (
                     employees.map((emp, index) => (
-                      <tr key={index}>
+                      <tr key={emp.id || index}>
                         <td><strong>{emp.employee_id}</strong></td>
                         <td>{emp.first_name} {emp.last_name}</td>
                         <td>{emp.email}</td>
@@ -124,18 +123,18 @@ function EmployeeList() {
                           )}
                         </td>
                         <td>
-                          <a
-                            href={`/employee/${emp.employee_id}`}
+                          <Link
+                            to={`/employees/${emp.employee_id}`}
                             className="btn btn-sm btn-info me-2"
                           >
                             View
-                          </a>
-                          <a
-                            href={`/edit-employee/${emp.employee_id}`}
+                          </Link>
+                          <Link
+                            to={`/employees/${emp.employee_id}/edit`}
                             className="btn btn-sm btn-warning"
                           >
                             Edit
-                          </a>
+                          </Link>
                         </td>
                       </tr>
                     ))

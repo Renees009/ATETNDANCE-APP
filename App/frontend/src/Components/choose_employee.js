@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+
 
 function ChooseEmployee() {
   const [employees, setEmployees] = useState([]);
@@ -13,14 +15,16 @@ function ChooseEmployee() {
       });
   }, []);
 
+  const navigate = useNavigate();
+
   const handleSubmit = (e) => {
     e.preventDefault();
-
-    console.log("Selected Employee:", selectedEmployee);
-
-    // Example: redirect or send to backend
-    // window.location.href = `/next-page/${selectedEmployee}`;
+    if (selectedEmployee) {
+      localStorage.setItem('selectedEmployeeId', selectedEmployee);
+      navigate(`/employee-home/${selectedEmployee}`);
+    }
   };
+
 
   return (
     <div className="row justify-content-center mt-5">
@@ -28,8 +32,10 @@ function ChooseEmployee() {
 
         <div className="card">
           <div className="card-header text-center">
-            <h5 className="mb-0">Select Employee</h5>
+            <h4 className="mb-0">👤 Employee Portal</h4>
+            <p className="text-muted mb-0">Please select your profile</p>
           </div>
+
 
           <div className="card-body">
             <form onSubmit={handleSubmit}>
