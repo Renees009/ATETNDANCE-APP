@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-ng4=td_z%1u6!(*4z_4_ar#3nl*8$9jczg=2j_g=iqf7rhkmqs
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
 
 # Application definition
@@ -39,7 +39,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'attendance',
     'rest_framework',
-    'api',
     'corsheaders',
 ]
 

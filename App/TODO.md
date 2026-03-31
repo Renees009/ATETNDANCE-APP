@@ -1,28 +1,19 @@
-# Role-Based Login Flow - COMPLETED ✅
+# Attendance App Full Functionality TODO
 
-**Flow Implemented:**
-- App loads → **Login page** shows immediately (/ and /login → Login)
-- Two buttons: **Admin** → /dashboard (full navbar)
-- **Employee** → /employees/choose (employee portal, no navbar)
-- Protected routes guard admin features
-- Employee select → /employee-home/:id 
+## Phase 1: Backend Fixes (Priority)
+- [x] Step 1: Update App/App/settings.py ✅ 
+- [x] Step 2: 8 APIs implemented ✅
+- [x] Step 3: urls.py updated ✅
 
-**To Test:**
-1. `cd App/frontend && npm start`
-2. http://localhost:3000 → Login page appears
-3. Click Admin → Dashboard
-4. Click Employee → Choose Employee → select → employee-home
-5. Logout: Browser console → `localStorage.clear()`
+## Phase 2: Frontend Standardization
+- [ ] Step 4: Create App/frontend/src/api.js with base URL and fetch/axios helpers
+- [ ] Step 5: Update Components to use api.js (start with visible attendance_by_date.js)
+- [ ] Step 6: Add proxy to App/frontend/package.json (optional)
 
-**Files Updated:**
-- App.js: Routing with initial login
-- login.js: Clean role selection (clears old session), no errors
-- choose_employee.js: Full flow to employee-home
+## Phase 3: Testing & Completion
+- [ ] Step 7: Backend commands: migrate && runserver
+- [ ] Step 8: Frontend: npm install axios && npm start
+- [ ] Step 9: Test all functionalities
+- [ ] Step 10: attempt_completion
 
-**No errors:** Login page clean, functional buttons.
-
-Logout: Run `localStorage.clear()` in console.
-
-
-
-
+**Progress: Executing Step 1**

@@ -19,7 +19,7 @@ class EmployeeAdmin(admin.ModelAdmin):
         }),
         ('Timestamps', {
             'fields': ('created_at', 'updated_at'),
-            'classes': ('collapse',) 
+            
         }),
     )
     

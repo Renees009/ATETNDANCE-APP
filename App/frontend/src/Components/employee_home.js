@@ -31,7 +31,7 @@ function EmployeePortal({ employeeId }) {
             href={`/mark-attendance?employee_id=${employee.employee_id}`}
             className="btn btn-success w-100 mb-2"
           >
-            📝 Mark Attendance
+             Mark Attendance
           </a>
         </div>
 
@@ -40,7 +40,7 @@ function EmployeePortal({ employeeId }) {
             href={`/attendance-summary?employee=${employee.id}`}
             className="btn btn-info w-100 mb-2"
           >
-            📊 View My Reports
+             View My Reports
           </a>
         </div>
 

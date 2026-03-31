@@ -34,5 +34,13 @@ urlpatterns = [
     path('api/dashboard/', views.dashboard_api, name='dashboard_api'),
     path('api/employees/', views.employee_list_api, name='employee_list_api'),
     path('api/mark-attendance/', views.mark_attendance_api, name='mark_attendance_api'),
+    path('api/attendance-by-date/', views.attendance_by_date_api, name='attendance_by_date_api'),
+    path('api/attendance-by-month/', views.attendance_by_month_api, name='attendance_by_month_api'),
+    path('api/attendance-by-year/', views.attendance_by_year_api, name='attendance_by_year_api'),
+    path('api/attendance-summary/', views.attendance_summary_api, name='attendance_summary_api'),
+    path('api/attendance-history/', views.attendance_history_api, name='attendance_history_api'),
+    path('api/employees/<str:employee_id>/', views.employee_detail_api, name='employee_detail_api'),
+    path('api/attendance/<int:record_id>/', views.attendance_detail_api, name='attendance_detail_api'),
+    path('api/attendance/<int:record_id>/update/', views.update_attendance_api, name='update_attendance_api'),
 ]
 

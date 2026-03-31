@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import api from '../api.js';
 
 function AttendanceByDate() {
   const [selectedDate, setSelectedDate] = useState("");
@@ -7,12 +8,16 @@ function AttendanceByDate() {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    // Fetch data from Django API
-    fetch(`http://127.0.0.1:8000/api/attendance-by-date/?date=${selectedDate}`)
-      .then((res) => res.json())
+    // Use centralized API
+    api.getAttendanceByDate(selectedDate)
       .then((data) => {
         setRecords(data.records || []);
+      })
+      .catch((error) => {
+        console.error('API Error:', error);
+        setRecords([]);
       });
+
   };
 
   const handleClear = () => {

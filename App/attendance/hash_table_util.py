@@ -9,25 +9,6 @@ from typing import Dict, List, Optional, Tuple
 
 
 class AttendanceHashTable:
-    """
-    Hash Table implementation for managing employee attendance records efficiently.
-    Uses employee_id as primary key with nested hash tables for dates and attributes.
-    
-    Data Structure:
-    {
-        'employee_id': {
-            'YYYY-MM-DD': {
-                'status': 'PRESENT|ABSENT|WORKING_LEAVE|NFD|LATE',
-                'check_in_time': 'HH:MM:SS',
-                'check_out_time': 'HH:MM:SS',
-                'absence_reason': 'SICK|PERSONAL|EMERGENCY|OTHER',
-                'remarks': 'text',
-                'created_at': 'ISO timestamp',
-                'is_editable': bool
-            }
-        }
-    }
-    """
     
     def __init__(self):
         """Initialize the hash table for attendance records"""
@@ -44,22 +25,6 @@ class AttendanceHashTable:
         remarks: Optional[str] = None,
         created_at: Optional[str] = None
     ) -> bool:
-        """
-        Mark attendance for an employee on a specific date.
-        
-        Args:
-            employee_id: Unique employee identifier
-            attendance_date: Date of attendance (date object)
-            status: Attendance status
-            check_in_time: Check-in time (optional)
-            check_out_time: Check-out time (optional)
-            absence_reason: Reason if absent (mandatory for ABSENT status)
-            remarks: Additional remarks
-            created_at: Creation timestamp
-            
-        Returns:
-            bool: True if marked successfully, False otherwise
-        """
         # no longer require a structured absence_reason; remarks may contain info
         # (keep absence_reason arg only for backwards compatibility)
         

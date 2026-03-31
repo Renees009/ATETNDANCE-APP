@@ -388,6 +388,208 @@ def mark_attendance_api(request):
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)}, status=400)
 
+@csrf_exempt
+def attendance_by_date_api(request):
+    """API: Attendance by specific date"""
+    date_str = request.GET.get('date')
+    if not date_str:
+        return JsonResponse({'error': 'Date parameter required'}, status=400)
+    
+    try:
+        from datetime import datetime
+        selected_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+        records = Attendance.objects.filter(attendance_date=selected_date).select_related('employee').values(
+            'id', 'employee_id', 'employee__first_name', 'employee__last_name', 'employee__department',
+            'status', 'check_in_time', 'check_out_time', 'remarks'
+        )
+        data = list(records)
+        for record in data:
+            record['employee_name'] = f"{record['employee__first_name']} {record['employee__last_name']}" 
+            record['department'] = record['employee__department']
+            del record['employee__first_name'], record['employee__last_name'], record['employee__department']
+        
+        return JsonResponse({'records': data, 'date': date_str})
+    except ValueError:
+        return JsonResponse({'error': 'Invalid date format'}, status=400)
+
+
+@csrf_exempt
+def attendance_by_month_api(request):
+    """API: Attendance by month/year"""
+    month = request.GET.get('month')
+    year = request.GET.get('year')
+    employee_id = request.GET.get('employee')
+    
+    if not month or not year:
+        return JsonResponse({'error': 'month and year required'}, status=400)
+    
+    try:
+        from calendar import monthrange
+        y, m = int(year), int(month)
+        days_in_month = monthrange(y, m)[1]
+        start_date = date(y, m, 1)
+        end_date = date(y, m, days_in_month)
+        
+        records = Attendance.objects.filter(
+            attendance_date__gte=start_date, attendance_date__lte=end_date
+        ).select_related('employee')
+        
+        if employee_id:
+            records = records.filter(employee__employee_id=employee_id)
+        
+        data = list(records.values('id', 'employee__employee_id', 'employee__first_name', 
+                                  'employee__last_name', 'attendance_date', 'status', 
+                                  'check_in_time', 'check_out_time'))
+        
+        return JsonResponse({'records': data, 'month': month, 'year': year})
+    except:
+        return JsonResponse({'error': 'Invalid parameters'}, status=400)
+
+
+@csrf_exempt  
+def attendance_by_year_api(request):
+    """API: Attendance by year"""
+    year = request.GET.get('year')
+    employee_id = request.GET.get('employee')
+    
+    if not year:
+        return JsonResponse({'error': 'year required'}, status=400)
+    
+    try:
+        y = int(year)
+        start_date = date(y, 1, 1)
+        end_date = date(y, 12, 31)
+        
+        records = Attendance.objects.filter(
+            attendance_date__gte=start_date, attendance_date__lte=end_date
+        ).select_related('employee')
+        
+        if employee_id:
+            records = records.filter(employee__employee_id=employee_id)
+        
+        data = list(records.values('attendance_date', 'status', 'check_in_time'))
+        return JsonResponse({'records': data, 'year': year})
+    except:
+        return JsonResponse({'error': 'Invalid year'}, status=400)
+
+
+@csrf_exempt
+def attendance_summary_api(request):
+    """API: Attendance summary statistics"""
+    month = request.GET.get('month', datetime.now().month)
+    year = request.GET.get('year', datetime.now().year)
+    
+    try:
+        from calendar import monthrange
+        y, m = int(year), int(month)
+        days_in_month = monthrange(y, m)[1]
+        working_days = sum(1 for d in range(1, days_in_month+1) if date(y,m,d).weekday() < 5)
+        
+        summaries = []
+        employees = Employee.objects.filter(is_active=True)
+        
+        for emp in employees:
+            records = Attendance.objects.filter(
+                employee=emp, attendance_date__month=m, attendance_date__year=y
+            ).values('status').annotate(count=Count('status'))
+            
+            summary = {
+                'employee_id': emp.employee_id,
+                'name': f"{emp.first_name} {emp.last_name}",
+                'present': 0, 'absent': 0, 'working_leave': 0, 'total_days': working_days,
+                'attendance_percentage': 0
+            }
+            
+            for r in records:
+                summary[r['status']] = r['count']
+            
+            if working_days > 0:
+                summary['attendance_percentage'] = round((summary['present'] / working_days) * 100, 2)
+            summaries.append(summary)
+        
+        return JsonResponse({'summaries': summaries, 'month': m, 'year': y})
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
+
+
+@csrf_exempt
+def attendance_history_api(request):
+    """API: Full attendance history with filters"""
+    records = Attendance.objects.select_related('employee').values(
+        'id', 'employee__employee_id', 'employee__first_name', 'employee__last_name',
+        'attendance_date', 'status', 'check_in_time', 'check_out_time', 'remarks'
+    ).order_by('-attendance_date')
+    
+    # Apply filters from query params (simplified)
+    date_from = request.GET.get('from_date')
+    # ... more filters as needed
+    
+    data = list(records)
+    return JsonResponse({'records': data})
+
+
+@csrf_exempt
+def employee_detail_api(request, employee_id):
+    """API: Single employee details + recent attendance"""
+    try:
+        emp = Employee.objects.get(employee_id=employee_id)
+        thirty_days_ago = datetime.now().date() - timedelta(days=30)
+        attendance = list(Attendance.objects.filter(
+            employee=emp, attendance_date__gte=thirty_days_ago
+        ).values('attendance_date', 'status', 'check_in_time'))
+        
+        return JsonResponse({
+            'employee': {
+                'id': emp.id, 'employee_id': emp.employee_id,
+                'first_name': emp.first_name, 'last_name': emp.last_name,
+                'email': emp.email, 'department': emp.department
+            },
+            'attendance_records': attendance
+        })
+    except Employee.DoesNotExist:
+        return JsonResponse({'error': 'Employee not found'}, status=404)
+
+
+@csrf_exempt
+def attendance_detail_api(request, record_id):
+    """API: Single attendance record (GET)"""
+    try:
+        record = Attendance.objects.select_related('employee').get(id=record_id)
+        data = {
+            'id': record.id,
+            'employee_id': record.employee.employee_id,
+            'employee': record.employee.id,
+            'attendance_date': record.attendance_date.isoformat(),
+            'status': record.status,
+            'check_in_time': str(record.check_in_time) if record.check_in_time else None,
+            'remarks': record.remarks
+        }
+        return JsonResponse(data)
+    except Attendance.DoesNotExist:
+        return JsonResponse({'error': 'Record not found'}, status=404)
+
+
+@csrf_exempt
+def update_attendance_api(request, record_id):
+    """API: Update attendance record (PUT/POST)"""
+    if request.method not in ['POST', 'PUT']:
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    
+    try:
+        data = json.loads(request.body)
+        record = get_object_or_404(Attendance, id=record_id)
+        
+        # Update fields
+        for field, value in data.items():
+            if hasattr(record, field) and field != 'id':
+                setattr(record, field, value)
+        
+        record.save()
+        return JsonResponse({'success': True, 'message': 'Updated'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=400)
+
+
 
 @require_http_methods(["GET", "POST"])
 def edit_attendance(request, attendance_id):
