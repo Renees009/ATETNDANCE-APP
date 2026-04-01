@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 
-function EmployeePortal({ employeeId }) {
+function EmployeeHome({ employeeId }) {
   const [employee, setEmployee] = useState({});
   const [todayAttendance, setTodayAttendance] = useState(null);
   const [recentAttendance, setRecentAttendance] = useState([]);
@@ -14,7 +14,7 @@ function EmployeePortal({ employeeId }) {
       });
 
     // Fetch today's attendance for this employee
-    fetch(`http://127.0.0.1:8000/api/attendance/today/`)
+    fetch(`http://127.0.0.1:8000/attendance/api/mark-attendance/`)
       .then(res => res.json())
       .then(data => {
         const todayRecords = data.records || [];
@@ -23,7 +23,7 @@ function EmployeePortal({ employeeId }) {
       });
 
     // Fetch recent attendance history
-    fetch(`http://127.0.0.1:8000/api/attendance-history/`)
+    fetch(`http://127.0.0.1:8000/attendance/api/attendance-history/`)
       .then(res => res.json())
       .then(data => {
         const allRecords = data.records || [];
@@ -171,5 +171,5 @@ function EmployeePortal({ employeeId }) {
   );
 }
 
-export default EmployeePortal;
+export default EmployeeHome;
 

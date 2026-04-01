@@ -24,7 +24,7 @@ function MarkAttendance({ employeeOverride }) {
 
     if (employeeId) {
       setFormData(prev => ({ ...prev, employee_id: employeeId }));
-      fetch(`http://127.0.0.1:8000/api/employees/${employeeId}/`)
+fetch(`http://127.0.0.1:8000/attendance/api/employees/${employeeId}/`)
         .then(res => res.json())
         .then(data => {
           setSelectedEmployeeName(`${data.first_name} ${data.last_name}`);
@@ -37,9 +37,12 @@ function MarkAttendance({ employeeOverride }) {
   useEffect(() => {
     fetch("http://127.0.0.1:8000/attendance/api/employees/")
       .then(res => res.json())
-      .then(data => setEmployees(data));
+      .then(data => {
+        const employeeList = data.employees || data || [];
+        setEmployees(employeeList);
+      });
 
-    fetch("http://127.0.0.1:8000/api/attendance/today/")
+    fetch("http://127.0.0.1:8000/attendance/api/mark-attendance/")
       .then(res => res.json())
       .then(data => {
         setTodayAttendance(data.records || []);
@@ -105,7 +108,7 @@ function MarkAttendance({ employeeOverride }) {
       return;
     }
 
-    fetch("http://127.0.0.1:8000/api/attendance/", {
+    fetch("http://127.0.0.1:8000/attendance/api/mark-attendance/", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
