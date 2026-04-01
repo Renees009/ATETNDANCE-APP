@@ -94,7 +94,7 @@ function EmployeeHome({ employeeId }) {
         <div className="col-md-6 mb-4">
           <div className="card h-100 shadow-sm">
             <div className="card-header bg-primary text-white">
-              <h5 className="mb-0">📅 Today&apos;s Status</h5>
+              <h5 className="mb-0"> Today&apos;s Status</h5>
             </div>
             <div className="card-body text-center py-4">
               {todayAttendance ? (
@@ -125,7 +125,7 @@ function EmployeeHome({ employeeId }) {
         <div className="col-md-6 mb-4">
           <div className="card h-100 shadow-sm">
             <div className="card-header bg-success text-white">
-              <h5 className="mb-0">⚡ Quick Actions</h5>
+              <h5 className="mb-0"> Quick Actions</h5>
             </div>
             <div className="card-body d-flex flex-column justify-content-center">
               <a href={`/mark-attendance?employee_id=${employee.employee_id}`} 
@@ -143,13 +143,13 @@ function EmployeeHome({ employeeId }) {
         </div>
       </div>
 
-      {/* Recent Attendance History */}
+      {/* Recent Attendance History
       <div className="row">
         <div className="col-md-12">
           <div className="card shadow-sm">
             <div className="card-header bg-info text-white">
               <h5 className="mb-0">
-                📋 Recent Attendance History
+                 Recent Attendance History
               </h5>
             </div>
             <div className="card-body p-0">
@@ -189,7 +189,7 @@ function EmployeeHome({ employeeId }) {
             </div>
           </div>
         </div>
-      </div>
+      </div> */}
 
     </div>
   );

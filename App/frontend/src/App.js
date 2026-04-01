@@ -35,14 +35,14 @@ function App() {
         <Route path="/add-employee" element={<MainLayout><AddEmployee /></MainLayout>} />
         <Route path="/employees/:employeeId" element={<MainLayout><EmployeeDetail /></MainLayout>} />
         <Route path="/employees/:employeeId/edit" element={<MainLayout><EditEmployee /></MainLayout>} />
-        <Route path="/mark-attendance" element={<MainLayout><MarkAttendance /></MainLayout>} />
+        <Route path="/mark-attendance" element={<MainLayout isEmployeePortal={true}><MarkAttendance /></MainLayout>} />
         <Route path="/attendance/:attendanceId/edit" element={<MainLayout><EditAttendance /></MainLayout>} />
         <Route path="/attendance/:attendanceId/admin-edit" element={<MainLayout><AdminOverrideEdit /></MainLayout>} />
         <Route path="/attendance-by-date" element={<MainLayout><AttendanceByDate /></MainLayout>} />
         <Route path="/attendance-by-month" element={<MainLayout><AttendanceByMonth /></MainLayout>} />
         <Route path="/attendance-by-year" element={<MainLayout><AttendanceByYear /></MainLayout>} />
         <Route path="/attendance-history" element={<MainLayout><AttendanceHistory /></MainLayout>} />
-        <Route path="/attendance-summary" element={<MainLayout><AttendanceSummary /></MainLayout>} />
+        <Route path="/attendance-summary" element={<MainLayout isEmployeePortal={true}><AttendanceSummary /></MainLayout>} />
         <Route path="/attendance-report" element={<MainLayout><AttendanceReport /></MainLayout>} />
         <Route path="/employees/choose" element={<ChooseEmployee />} />
         <Route path="/employee-home/:employeeId" element={<EmployeeHome />} />

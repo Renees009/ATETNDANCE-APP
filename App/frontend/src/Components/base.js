@@ -10,7 +10,7 @@ const MainLayout = ({ children, isEmployeePortal = false }) => {
         <nav className="navbar navbar-expand-lg navbar-dark" style={{ background: "#6a00f4" }}>
           <div className="container-fluid">
             <Link className="navbar-brand fw-bold fs-4" to="/dashboard">
-              📊 Attendance System
+               Attendance System
             </Link>
 
             <button

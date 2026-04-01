@@ -39,7 +39,7 @@ function AttendanceSummary() {
       {/* Title */}
       <div className="row mb-4">
         <div className="col-md-12">
-          <h2>📊 Attendance Summary Report</h2>
+          <h2> Attendance Summary Report</h2>
         </div>
       </div>
 
