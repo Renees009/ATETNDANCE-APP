@@ -1,16 +1,31 @@
 import React, { useEffect, useState } from "react";
 
 function EmployeeHome({ employeeId }) {
+  const localEmployeeId = localStorage.getItem('selectedEmployeeId') || employeeId;
+  if (!employeeId) console.error('NO EMPLOYEE ID PROP! Check routing in App.js');
   const [employee, setEmployee] = useState({});
   const [todayAttendance, setTodayAttendance] = useState(null);
   const [recentAttendance, setRecentAttendance] = useState([]);
 
   useEffect(() => {
     // Fetch employee details
-    fetch(`http://127.0.0.1:8000/attendance/api/employees/${employeeId}/`)
-      .then((res) => res.json())
+    console.log('🔍 Fetching employee ID:', localEmployeeId);
+    fetch(`http://127.0.0.1:8000/attendance/api/employees/${localEmployeeId}/`)
+      .then((res) => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      })
       .then((data) => {
-        setEmployee(data);
+        const empData = data.employee;
+        console.log(' Employee API success:', empData);
+        if (empData) {
+          setEmployee(empData);
+        } else {
+          console.warn('No employee data found in response');
+        }
+      })
+      .catch((err) => {
+        console.error('❌ Employee API failed:', err);
       });
 
     // Fetch today's attendance for this employee
@@ -32,7 +47,7 @@ function EmployeeHome({ employeeId }) {
           .slice(0, 7);
         setRecentAttendance(recent);
       });
-  }, [employeeId]);
+  }, [localEmployeeId]);
 
   const getStatusBadge = (status) => {
     const badges = {
@@ -53,12 +68,21 @@ function EmployeeHome({ employeeId }) {
         <div className="col-md-12 text-center">
           <div className="card shadow-sm border-0">
             <div className="card-body">
-              <h1 className="display-4 mb-2">
-                👋 Welcome, {employee.first_name} {employee.last_name}
-              </h1>
+              <div className="mb-4">
+                <h1 className="display-4 mb-2">
+                   Welcome, <span className="text-primary">{employee.first_name || 'NO NAME'} {employee.last_name || ''}</span>
+                </h1>
+                {/* <p className="lead">
+                <span className="badge bg-success fs-5 me-2">{employee.employee_id || employee.id || 'NO ID'}</span>
+                  <span className="badge bg-info fs-5">{employee.department || 'NO DEPT'}</span>
+                </p> */}
+                {/* <div className="alert alert-info mt-3">
+                  DEBUG: full employee = <pre>{JSON.stringify(employee, null, 2)}</pre>
+                </div> */}
+              </div>
               <p className="lead text-muted mb-0">
                 Employee ID: <strong>{employee.employee_id}</strong> | 
-                {employee.department} Department - {employee.position}
+                Department - {employee.department}
               </p>
             </div>
           </div>
