@@ -29,6 +29,10 @@ export const api = {
     params 
   }),
   getEmployee: (employeeId) => apiCall(`api/employees/${employeeId}/`),
+  createEmployee: (data) => apiCall('api/employees/', {
+    method: 'POST',
+    body: JSON.stringify(data)
+  }),
   
   // Attendance Mark
   getTodayAttendance: () => apiCall('api/mark-attendance/'),

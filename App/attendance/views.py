@@ -170,6 +170,8 @@ def employee_list_api(request):
     
     departments = [choice[0] for choice in Employee.DEPARTMENT_CHOICES]
     
+
+
     context = {
         'employees': list(employees),
         'departments': departments,
@@ -177,7 +179,33 @@ def employee_list_api(request):
     return JsonResponse(context)
 
 
+@csrf_exempt
+def add_employee_api(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            form = EmployeeForm(data)
+            if form.is_valid():
+                employee = form.save()
+                return JsonResponse({
+                    'success': True,
+                    'message': 'Employee created successfully!',
+                    'employee': {
+                        'employee_id': employee.employee_id,
+                        'name': f"{employee.first_name} {employee.last_name}"
+                    }
+                })
+            else:
+                return JsonResponse({'success': False, 'errors': form.errors}, status=400)
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+    return JsonResponse({'error': 'POST required'}, status=405)
+
+
 def employee_detail(request, employee_id):
+
     """View employee details with attendance history"""
     employee = get_object_or_404(Employee, employee_id=employee_id)
     

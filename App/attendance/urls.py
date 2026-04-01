@@ -12,6 +12,7 @@ urlpatterns = [
     path('employees/choose/', views.choose_employee, name='choose_employee'),
     path('employee-portal/<str:employee_id>/', views.employee_home, name='employee_home'),
     path('employees/add/', views.add_employee, name='add_employee'),
+    path('api/employees/', views.employee_list_api, name='employee_list_api'),
     path('employees/<str:employee_id>/', views.employee_detail, name='employee_detail'),
     path('employees/<str:employee_id>/edit/', views.edit_employee, name='edit_employee'),
     

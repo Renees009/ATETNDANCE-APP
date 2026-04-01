@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 
 function MarkAttendance({ employeeOverride }) {
+  const [selectedEmployeeName, setSelectedEmployeeName] = useState('');
   const [formData, setFormData] = useState({
     employee_id: "",
     attendance_date: "",
@@ -14,9 +15,27 @@ function MarkAttendance({ employeeOverride }) {
   const [recordedIds, setRecordedIds] = useState([]);
   const [warning, setWarning] = useState("");
 
+  // Auto-detect employee from URL/localStorage
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlEmployeeId = urlParams.get('employee_id');
+    const lsEmployeeId = localStorage.getItem('selectedEmployeeId');
+    const employeeId = urlEmployeeId || lsEmployeeId;
+
+    if (employeeId) {
+      setFormData(prev => ({ ...prev, employee_id: employeeId }));
+      fetch(`http://127.0.0.1:8000/api/employees/${employeeId}/`)
+        .then(res => res.json())
+        .then(data => {
+          setSelectedEmployeeName(`${data.first_name} ${data.last_name}`);
+        })
+        .catch(err => console.error('Failed to fetch employee:', err));
+    }
+  }, []);
+
   // Fetch data
   useEffect(() => {
-    fetch("http://127.0.0.1:8000/api/employees/")
+    fetch("http://127.0.0.1:8000/attendance/api/employees/")
       .then(res => res.json())
       .then(data => setEmployees(data));
 
@@ -131,7 +150,7 @@ function MarkAttendance({ employeeOverride }) {
             <form onSubmit={handleSubmit}>
 
               {/* Employee */}
-              {!employeeOverride && (
+              {!(employeeOverride || selectedEmployeeName) && (
                 <div className="mb-3">
                   <label className="form-label">Employee</label>
                   <select
@@ -150,9 +169,9 @@ function MarkAttendance({ employeeOverride }) {
                 </div>
               )}
 
-              {employeeOverride && (
+              {(employeeOverride || selectedEmployeeName) && (
                 <p className="text-info">
-                  Recording for <strong>{employeeOverride}</strong>
+                  Recording for <strong>{selectedEmployeeName || employeeOverride}</strong>
                 </p>
               )}
 
