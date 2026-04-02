@@ -13,7 +13,32 @@ function MarkAttendance({ employeeOverride }) {
   const [employees, setEmployees] = useState([]);
   const [todayAttendance, setTodayAttendance] = useState([]);
   const [recordedIds, setRecordedIds] = useState([]);
+  const [recentSubmitSuccess, setRecentSubmitSuccess] = useState(false);
+  const [employeeHistory, setEmployeeHistory] = useState([]);
   const [warning, setWarning] = useState("");
+  const [successMsg, setSuccessMsg] = useState("");
+  const [errorMsg, setErrorMsg] = useState("");
+
+  const filteredTodayAttendance = formData.employee_id 
+    ? todayAttendance.filter(record => String(record.employee_id) === String(formData.employee_id))
+    : todayAttendance;
+
+  // Debug logs
+  console.log('Filter Debug:', {
+    employee_id: formData.employee_id,
+    filteredCount: filteredTodayAttendance.length,
+    todayAttendance,
+    sampleRecord: todayAttendance[0]
+  });
+
+  // Debug log
+  console.log('MarkAttendance Debug:', {
+    employee_id: formData.employee_id,
+    selectedName: selectedEmployeeName,
+    totalRecords: todayAttendance.length,
+    filteredCount: filteredTodayAttendance.length,
+    hasRecords: !!todayAttendance.length
+  });
 
   // Auto-detect employee from URL/localStorage
   useEffect(() => {
@@ -71,6 +96,28 @@ fetch(`http://127.0.0.1:8000/attendance/api/employees/${employeeId}/`)
     return () => clearInterval(interval);
   }, []);
 
+  // Fetch employee name when employee_id changes
+  useEffect(() => {
+    const id = formData.employee_id;
+    if (id) {
+      fetch(`http://127.0.0.1:8000/attendance/api/employees/${id}/`)
+        .then(res => {
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          return res.json();
+        })
+        .then(data => {
+          const name = `${data.first_name || ''} ${data.last_name || ''}`.trim();
+          setSelectedEmployeeName(name || 'ID: ' + id);
+        })
+        .catch(err => {
+          console.error('Employee name fetch failed:', err);
+          setSelectedEmployeeName(`ID: ${id}`);
+        });
+    } else {
+      setSelectedEmployeeName('');
+    }
+  }, [formData.employee_id]);
+
   // Handle change
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -80,9 +127,11 @@ fetch(`http://127.0.0.1:8000/attendance/api/employees/${employeeId}/`)
       [name]: value,
     }));
 
+    // Name fetch moved to useEffect
+
     // Check duplicate attendance
     if (name === "employee_id") {
-      if (recordedIds.includes(parseInt(value))) {
+    if (recordedIds.includes(value)) {
         setWarning("Attendance already marked for this employee today.");
       } else {
         setWarning("");
@@ -91,35 +140,112 @@ fetch(`http://127.0.0.1:8000/attendance/api/employees/${employeeId}/`)
   };
 
   // Submit
-  const handleSubmit = (e) => {
+  const refreshTodayAttendance = () => {
+    console.log('Refreshing attendance data...');
+    fetch("http://127.0.0.1:8000/attendance/api/mark-attendance/")
+      .then(res => res.json())
+      .then(data => {
+        console.log('API Response:', data);
+        setTodayAttendance(data.records || []);
+        setRecordedIds(data.recorded_ids || []);
+        setWarning(""); // Clear warning after refresh
+      })
+      .catch(err => {
+        console.error("Refresh failed:", err);
+        showError("Failed to refresh table - please refresh page");
+      });
+  };
+
+  const showSuccess = (msg) => {
+    setSuccessMsg(msg);
+    setErrorMsg("");
+    setTimeout(() => setSuccessMsg(""), 3000);
+  };
+
+  const showError = (msg) => {
+    setErrorMsg(msg);
+    setSuccessMsg("");
+  };
+
+  const clearMessages = () => {
+    setSuccessMsg("");
+    setErrorMsg("");
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    clearMessages();
+
+    // Client-side validations first
+    if (!formData.employee_id) {
+      showError("Please select an employee");
+      return;
+    }
 
     if (recordedIds.includes(parseInt(formData.employee_id))) {
-      alert("Already recorded!");
+      showError("Today's attendance already marked for this employee");
       return;
     }
 
     if (
-      (formData.status === "ABSENT" ||
-        formData.status === "WORKING_LEAVE") &&
+      (formData.status === "ABSENT" || formData.status === "WORKING_LEAVE") &&
       !formData.remarks
     ) {
-      alert("Remarks required!");
+      showError("Remarks required for Absent or Work From Home");
       return;
     }
 
-    fetch("http://127.0.0.1:8000/attendance/api/mark-attendance/", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(formData),
-    })
-      .then(res => res.json())
-      .then(() => {
-        alert("Attendance saved!");
-        window.location.reload();
+    try {
+      const response = await fetch("http://127.0.0.1:8000/attendance/api/mark-attendance/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
       });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || data.message || "Failed to save attendance");
+      }
+
+      // Optimistic update + flag
+      showSuccess("Attendance marked successfully!");
+      setRecentSubmitSuccess(true);
+      
+      // Optimistically add to local state
+      const newRecord = {
+        employee_id: formData.employee_id,
+        employee_name: selectedEmployeeName,
+        status: formData.status,
+        check_in_time: formData.check_in_time,
+        remarks: formData.remarks || '--',
+        attendance_date: formData.attendance_date
+      };
+      setTodayAttendance(prev => [newRecord, ...prev]);
+      
+      refreshTodayAttendance(); // Sync with server
+      
+      // Reset form but keep employee
+      setFormData({ 
+        employee_id: formData.employee_id, 
+        attendance_date: formData.attendance_date, 
+        status: "", 
+        remarks: "", 
+        check_in_time: formData.check_in_time 
+      });
+      
+      // Clear success flag after 5s
+      setTimeout(() => setRecentSubmitSuccess(false), 5000);
+      
+    } catch (error) {
+      // Handle backend duplicate or other errors
+      const errorMsg = error.message.toLowerCase();
+      if (errorMsg.includes("already marked") || errorMsg.includes("duplicate")) {
+        showError("Today's attendance has already been marked for this employee");
+      } else {
+        showError(`Failed to save: ${error.message}`);
+      }
+    }
   };
 
   const getBadge = (status) => {
@@ -171,16 +297,28 @@ fetch(`http://127.0.0.1:8000/attendance/api/employees/${employeeId}/`)
                   </select>
                 </div>
               )}
-
-              {(employeeOverride || selectedEmployeeName) && (
-                <p className="text-info">
-                  Recording for <strong>{selectedEmployeeName || employeeOverride}</strong>
-                </p>
+  
+                <div className="alert alert-success mb-3 p-3">
+                  <small className="text-muted">ID: {formData.employee_id}</small>
+                </div>
+              {/* Messages */}
+              {successMsg && (
+                <div className="alert alert-success alert-dismissible fade show" role="alert">
+                  {successMsg}
+                  <button type="button" className="btn-close" onClick={clearMessages}></button>
+                </div>
               )}
-
-              {/* Warning */}
+              {errorMsg && (
+                <div className="alert alert-danger alert-dismissible fade show" role="alert">
+                  {errorMsg}
+                  <button type="button" className="btn-close" onClick={clearMessages}></button>
+                </div>
+              )}
               {warning && (
-                <div className="alert alert-warning">{warning}</div>
+                <div className="alert alert-warning alert-dismissible fade show" role="alert">
+                  {warning}
+                  <button type="button" className="btn-close" onClick={() => setWarning("")}></button>
+                </div>
               )}
 
               {/* Date */}
@@ -214,8 +352,7 @@ fetch(`http://127.0.0.1:8000/attendance/api/employees/${employeeId}/`)
 
               {/* Remarks */}
               <div className="mb-3">
-                <label>Remarks</label>
-                <textarea
+                <label>Remarks</label>                <textarea
                   name="remarks"
                   className="form-control"
                   onChange={handleChange}
@@ -236,8 +373,12 @@ fetch(`http://127.0.0.1:8000/attendance/api/employees/${employeeId}/`)
                 />
               </div>
 
-              <button className="btn btn-success">
-                Save Attendance
+              <button 
+                type="submit" 
+                className="btn btn-success"
+                disabled={!formData.status || warning || errorMsg || recordedIds.includes(formData.employee_id)}
+              >
+                {recordedIds.includes(parseInt(formData.employee_id)) ? "Already Marked" : "Save Attendance"}
               </button>
 
             </form>
@@ -249,7 +390,10 @@ fetch(`http://127.0.0.1:8000/attendance/api/employees/${employeeId}/`)
       <div className="col-md-6">
         <div className="card">
           <div className="card-header">
-            <h5>Today's Attendance</h5>
+            <h5>{formData.employee_id ? (
+              `${selectedEmployeeName || 'Selected Employee'} - Today` +
+              (recentSubmitSuccess || filteredTodayAttendance.length > 0 ? ' (Marked)' : ' (Not Marked)')
+            ) : 'Today\'s Attendance (All)'}</h5>
           </div>
 
           <div className="table-responsive">
@@ -259,16 +403,16 @@ fetch(`http://127.0.0.1:8000/attendance/api/employees/${employeeId}/`)
                   <th>Employee</th>
                   <th>Status</th>
                   <th>Check In</th>
-                  <th>Check Out</th>
+  
                   <th>Reason</th>
                 </tr>
               </thead>
 
               <tbody>
-                {todayAttendance.length > 0 ? (
-                  todayAttendance.map((rec, i) => (
-                    <tr key={i}>
-                      <td>{rec.employee_name}</td>
+                {filteredTodayAttendance.length > 0 ? (
+                  filteredTodayAttendance.map((rec, i) => (
+                    <tr key={`${rec.employee_id}-${rec.attendance_date || i}`}>
+                      <td>{rec.employee_name || 'Employee'}</td>
                       <td>
                         <span className={`badge ${getBadge(rec.status)}`}>
                           {rec.status}
@@ -279,10 +423,16 @@ fetch(`http://127.0.0.1:8000/attendance/api/employees/${employeeId}/`)
                       <td>{rec.remarks || "--"}</td>
                     </tr>
                   ))
+                ) : recentSubmitSuccess ? (
+                  <tr>
+                    <td colSpan="5" className="text-center text-success fw-bold">
+                      ✅ Attendance marked successfully! Refreshing from server...
+                    </td>
+                  </tr>
                 ) : (
                   <tr>
-                    <td colSpan="5" className="text-center">
-                      No attendance records for today.
+                    <td colSpan="5" className="text-center text-muted">
+                      {formData.employee_id ? 'No attendance record for selected employee today.' : 'No attendance records for today.'}
                     </td>
                   </tr>
                 )}

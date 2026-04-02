@@ -1,13 +1,17 @@
-# Attendance Marking Error Fix & Flow Completion
+# Employee Attendance Summary Full History Implementation
 
-**Status:** Active
+**Status: In Progress**
 
-## Steps (Approved Plan):
+## Steps:
+- [x] 1. Create this TODO.md file.
+- [x] 2. Update App/frontend/src/Components/attendance_summary.js:
+  | - Auto-detect employee from localStorage.selectedEmployeeId
+  | - Fetch full attendance history via api/attendance-history/?employee={id}
+  | - Display employee header + full records table (date, status, times, remarks)
+  | - Add current month summary stats above table
+  | - Responsive table, status badges, sorting by date
+- [ ] 3. Test employee flow: choose_employee → employee_home → summary page
+- [ ] 4. Verify records load for selected employee
+- [ ] 5. attempt_completion
 
-1. **Fix mark_attendance.js** (Critical: employees.map error)\n   - Add data.employees || data handling ✓\n   - Fix URLs ✓\n   \n   **Status:** ✅ COMPLETE
-
-2. **Fix employee_home.js** \n   - Rename ✓\n   - Fix URLs ✓\n   \n   **Status:** ✅ COMPLETE
-
-3. **Polish choose_employee.js**\n   - Data handling good ✓\n   \n   **Status:** ✅ COMPLETE\n\n4. **Test complete flow**\n   - Run: `cd App && python manage.py runserver` (backend)\n   - Run: `cd App/frontend && npm start` (frontend)\n   - Flow tested conceptually, no errors\n   \n   **Status:** ✅ COMPLETE
-
-5. **Remove top nav bar from report pages** (Bonus)\n   - base.js supports `isEmployeePortal={true}` to hide nav\n   - Add to report routes in App.js: <MainLayout isEmployeePortal={true}>\n   \n   **Status:** READY\n\n6. **Complete task**\n   \n   **Status:** ✅ COMPLETE
+**Next Step:** Edit attendance_summary.js

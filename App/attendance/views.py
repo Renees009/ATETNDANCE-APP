@@ -542,15 +542,16 @@ def attendance_summary_api(request):
 
 @csrf_exempt
 def attendance_history_api(request):
-    """API: Full attendance history with filters"""
+    """API: Full attendance history with employee filter"""
     records = Attendance.objects.select_related('employee').values(
         'id', 'employee__employee_id', 'employee__first_name', 'employee__last_name',
         'attendance_date', 'status', 'check_in_time', 'check_out_time', 'remarks'
     ).order_by('-attendance_date')
     
-    # Apply filters from query params (simplified)
-    date_from = request.GET.get('from_date')
-    # ... more filters as needed
+    # Apply employee filter
+    employee_id = request.GET.get('employee')
+    if employee_id:
+        records = records.filter(employee__employee_id=employee_id)
     
     data = list(records)
     return JsonResponse({'records': data})

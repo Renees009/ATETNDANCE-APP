@@ -71,7 +71,7 @@ function ChooseEmployee() {
         <div className="card shadow-lg">
           <div className="card-header bg-primary text-white text-center">
             <h4 className="mb-0">
-              👤 Employee Portal
+               Employee Portal
             </h4>
             <p className="text-white-50 mb-0">Select your profile to continue</p>
           </div>
@@ -88,7 +88,7 @@ function ChooseEmployee() {
             <form onSubmit={handleSubmit}>
               <div className="mb-4">
                 <label className="form-label fw-bold">
-                  👥 Select Employee ({employees.length} from MySQL DB)
+                   Select Employee 
                 </label>
                 <select
                   className="form-select form-control form-select-lg"
@@ -122,13 +122,7 @@ function ChooseEmployee() {
               </button>
             </form>
 
-            {employees.length > 0 && (
-              <div className="mt-3 p-3 bg-light rounded">
-                <small className="text-muted">
-                  ✅ Loaded {employees.length} employees from MySQL database
-                </small>
-              </div>
-            )}
+            
           </div>
         </div>
       </div>
