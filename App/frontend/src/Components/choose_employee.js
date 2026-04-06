@@ -9,28 +9,22 @@ function ChooseEmployee() {
 
   const navigate = useNavigate();
 
-  // Fetch employees from backend (MySQL)
   useEffect(() => {
     const fetchEmployees = async () => {
       try {
         setLoading(true);
         const response = await fetch("http://127.0.0.1:8000/attendance/api/employees/");
-        
+
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
-        
+
         const data = await response.json();
-        console.log('Raw API response:', data);
-        
-        // Handle both {employees: [...]} and direct array response
         const employeeList = data.employees || data || [];
-        console.log('Processed employees:', employeeList);
-        
+
         setEmployees(employeeList);
         setError(null);
       } catch (err) {
-        console.error('Fetch error:', err);
         setError(err.message);
       } finally {
         setLoading(false);
@@ -43,87 +37,104 @@ function ChooseEmployee() {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (selectedEmployee) {
-      localStorage.setItem('selectedEmployeeId', selectedEmployee);
+      localStorage.setItem("selectedEmployeeId", selectedEmployee);
       navigate(`/employee-home/${selectedEmployee}`);
     }
   };
 
+  // Loading UI
   if (loading) {
     return (
-      <div className="row justify-content-center mt-5">
-        <div className="col-md-6">
-          <div className="card">
-            <div className="card-body text-center">
-              <div className="spinner-border" role="status">
-                <span className="visually-hidden">Loading employees...</span>
-              </div>
-              <p className="mt-2">Loading employees from database...</p>
-            </div>
-          </div>
+      <div
+        className="d-flex justify-content-center align-items-center"
+        style={{
+          minHeight: "100vh",
+          background: "linear-gradient(135deg, #1e3c72, #2a5298)",
+        }}
+      >
+        <div className="text-center text-white">
+          <div className="spinner-border text-light" role="status"></div>
+          <p className="mt-3">Fetching employee data...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="row justify-content-center mt-5 min-vh-100 align-items-center">
-      <div className="col-md-6">
-        <div className="card shadow-lg">
-          <div className="card-header bg-primary text-white text-center">
-            <h4 className="mb-0">
-               Employee Portal
-            </h4>
-            <p className="text-white-50 mb-0">Select your profile to continue</p>
+    <div
+      className="d-flex justify-content-center align-items-center"
+      style={{
+        minHeight: "100vh",
+        background: "linear-gradient(135deg, #1e3c72, #2a5298)",
+      }}
+    >
+      <div
+        className="card border-0 shadow"
+        style={{
+          width: "100%",
+          maxWidth: "420px",
+          borderRadius: "12px",
+        }}
+      >
+        <div className="card-body p-4">
+
+          {/* Header */}
+          <div className="text-center mb-4">
+            <h5 className="fw-semibold mb-1">Employee Portal</h5>
+            <p className="text-muted small mb-0">
+              Select your profile to continue
+            </p>
           </div>
 
-          <div className="card-body p-4">
-            {error && (
-              <div className="alert alert-danger mb-3">
-                <strong>Error loading employees:</strong> {error}
-                <br/>
-                <small>Make sure Django server is running: <code>python manage.py runserver</code></small>
-              </div>
-            )}
+          {/* Error */}
+          {error && (
+            <div className="alert alert-danger small">
+              Unable to load employees. Please try again.
+            </div>
+          )}
 
-            <form onSubmit={handleSubmit}>
-              <div className="mb-4">
-                <label className="form-label fw-bold">
-                   Select Employee 
-                </label>
-                <select
-                  className="form-select form-control form-select-lg"
-                  value={selectedEmployee}
-                  onChange={(e) => setSelectedEmployee(e.target.value)}
-                  required
-                >
-                  <option value="">-- Choose Employee --</option>
-                  {employees.map((emp, index) => (
-                    <option key={emp.employee_id || index} value={emp.employee_id}>
-                      {emp.full_name || `${emp.first_name || ''} ${emp.last_name || ''}`.trim()} 
-                      ({emp.employee_id})
-                      {emp.department ? ` - ${emp.department}` : ''}
-                    </option>
-                  ))}
-                </select>
-                {employees.length === 0 && !loading && !error && (
-                  <small className="text-muted">
-                    No employees found. Add some via Admin Panel first.
-                  </small>
-                )}
-              </div>
+          {/* Form */}
+          <form onSubmit={handleSubmit}>
+            <div className="mb-3">
+              <label className="form-label small fw-semibold">
+                Employee
+              </label>
 
-              <button 
-                type="submit" 
-                className="btn btn-primary btn-lg w-100 shadow-sm"
-                disabled={!selectedEmployee}
+              <select
+                className="form-select"
+                value={selectedEmployee}
+                onChange={(e) => setSelectedEmployee(e.target.value)}
+                required
+                style={{ padding: "10px", borderRadius: "6px" }}
               >
-                <i className="bi bi-arrow-right me-2"></i>
-                Continue to Portal
-              </button>
-            </form>
+                <option value="">Select an employee</option>
 
-            
-          </div>
+                {employees.map((emp, index) => (
+                  <option key={emp.employee_id || index} value={emp.employee_id}>
+                    {emp.full_name ||
+                      `${emp.first_name || ""} ${emp.last_name || ""}`.trim()}{" "}
+                    ({emp.employee_id})
+                  </option>
+                ))}
+              </select>
+
+              {employees.length === 0 && !error && (
+                <small className="text-muted">
+                  No employees available
+                </small>
+              )}
+            </div>
+
+            <button
+              type="submit"
+              className="btn btn-dark w-100"
+              disabled={!selectedEmployee}
+              style={{ padding: "10px", borderRadius: "6px" }}
+            >
+              Continue
+            </button>
+          </form>
+
         </div>
       </div>
     </div>
@@ -131,4 +142,3 @@ function ChooseEmployee() {
 }
 
 export default ChooseEmployee;
-

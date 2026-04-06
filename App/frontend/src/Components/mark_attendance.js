@@ -346,7 +346,7 @@ fetch(`http://127.0.0.1:8000/attendance/api/employees/${employeeId}/`)
                   <option value="ABSENT">Absent</option>
                   <option value="LATE">Late</option>
                   <option value="WORKING_LEAVE">Work From Home</option>
-                  <option value="NFD">NFD</option>
+                  <option value="NFD">Half Day work</option>
                 </select>
               </div>
 
@@ -398,13 +398,15 @@ fetch(`http://127.0.0.1:8000/attendance/api/employees/${employeeId}/`)
 
           <div className="table-responsive">
             <table className="table table-sm">
-              <thead>
+              <thead className="table-dark">
                 <tr>
-                  <th>Employee</th>
+                  <th>Employee ID</th>
+                  <th>Employee Name</th>
+                  <th>Date</th>
                   <th>Status</th>
                   <th>Check In</th>
-  
-                  <th>Reason</th>
+             
+                  <th>Remarks</th>
                 </tr>
               </thead>
 
@@ -412,27 +414,31 @@ fetch(`http://127.0.0.1:8000/attendance/api/employees/${employeeId}/`)
                 {filteredTodayAttendance.length > 0 ? (
                   filteredTodayAttendance.map((rec, i) => (
                     <tr key={`${rec.employee_id}-${rec.attendance_date || i}`}>
-                      <td>{rec.employee_name || 'Employee'}</td>
+                      <td><strong>{rec.employee_id}</strong></td>
+                      <td>{rec.employee__first_name || rec.employee_name || '—'}</td>
+                      <td>{rec.attendance_date}</td>
                       <td>
-                        <span className={`badge ${getBadge(rec.status)}`}>
-                          {rec.status}
+                        <span className={`badge fs-6 px-2 py-1 ${getBadge(rec.status)}`}>
+                          {rec.status.replace('_', ' ')}
                         </span>
                       </td>
-                      <td>{rec.check_in_time || "--"}</td>
-                      <td>{rec.check_out_time || "--"}</td>
-                      <td>{rec.remarks || "--"}</td>
+                      <td>{rec.check_in_time || '—'}</td>
+                 
+                      <td className="text-truncate" style={{maxWidth: '150px'}} title={rec.remarks}>
+                        {rec.remarks || '—'}
+                      </td>
                     </tr>
                   ))
                 ) : recentSubmitSuccess ? (
                   <tr>
-                    <td colSpan="5" className="text-center text-success fw-bold">
-                      ✅ Attendance marked successfully! Refreshing from server...
+                    <td colSpan="7" className="text-center text-success fw-bold p-4">
+                       Attendance marked successfully! Refreshing from server...
                     </td>
                   </tr>
                 ) : (
                   <tr>
-                    <td colSpan="5" className="text-center text-muted">
-                      {formData.employee_id ? 'No attendance record for selected employee today.' : 'No attendance records for today.'}
+                    <td colSpan="7" className="text-center text-muted p-4">
+                      {formData.employee_id ? `No attendance record for ${selectedEmployeeName} today.` : 'No attendance records for today.'}
                     </td>
                   </tr>
                 )}

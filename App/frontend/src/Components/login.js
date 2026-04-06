@@ -4,43 +4,66 @@ import { useNavigate } from "react-router-dom";
 function Login() {
   const navigate = useNavigate();
 
-  // Clear any existing session when landing on the login/role selection page
   useEffect(() => {
-    localStorage.removeItem('authToken');
+    localStorage.removeItem("authToken");
   }, []);
 
   const handleAdminLogin = () => {
-    localStorage.setItem('authToken', 'admin-mock-token');
-    navigate('/dashboard');
+    localStorage.setItem("authToken", "admin-mock-token");
+    navigate("/dashboard");
   };
 
   const handleEmployeeLogin = () => {
-    localStorage.setItem('authToken', 'employee-mock-token');
-    navigate('/employees/choose');
+    localStorage.setItem("authToken", "employee-mock-token");
+    navigate("/employees/choose");
   };
 
   return (
     <div
       className="d-flex justify-content-center align-items-center"
-      style={{ minHeight: "80vh" }}
+      style={{
+        minHeight: "100vh",
+        background: "linear-gradient(135deg, #1e3c72, #2a5298)",
+      }}
     >
       <div
-        className="card p-4"
-        style={{ maxWidth: "400px", width: "100%" }}
+        className="card shadow-lg"
+        style={{
+          width: "100%",
+          maxWidth: "420px",
+          borderRadius: "15px",
+        }}
       >
-        <h4 className="mb-3 text-center">Select Role</h4>
+        <div className="card-body p-4">
 
-        <div className="d-grid gap-2">
+          {/* Title */}
+          <div className="text-center mb-4">
+            <h3 className="fw-bold">Welcome Back</h3>
+            <p className="text-muted mb-0">Please select your role to continue</p>
+          </div>
 
-          {/* Admin */}
-          <button onClick={handleAdminLogin} className="btn btn-primary">
-            Admin
-          </button>
+          {/* Buttons */}
+          <div className="d-grid gap-3">
 
-          {/* Employee */}
-          <button onClick={handleEmployeeLogin} className="btn btn-secondary">
-            Employee
-          </button>
+            {/* Admin Button */}
+            <button
+              onClick={handleAdminLogin}
+              className="btn btn-primary btn-lg"
+              style={{ borderRadius: "10px" }}
+            >
+               Admin Login
+            </button>
+
+            {/* Employee Button */}
+            <button
+              onClick={handleEmployeeLogin}
+              className="btn btn-outline-secondary btn-lg"
+              style={{ borderRadius: "10px" }}
+            >
+               Employee Login
+            </button>
+
+          </div>
 
         </div>
       </div>

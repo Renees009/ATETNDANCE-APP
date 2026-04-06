@@ -12,6 +12,10 @@ function AttendanceSummary() {
   const [employeeName, setEmployeeName] = useState("");
   const [loading, setLoading] = useState(true);
   const [isEmployeeView, setIsEmployeeView] = useState(false);
+  const [showScrollButton, setShowScrollButton] = useState(false);
+  const [tableScrollTop, setTableScrollTop] = useState(0);
+  const [tableScrollHeight, setTableScrollHeight] = useState(0);
+  const tableRef = React.useRef(null);
 
   // Detect employee context on mount
   useEffect(() => {
@@ -32,6 +36,29 @@ function AttendanceSummary() {
     }
     
     setLoading(false);
+  }, []);
+
+  // Page scroll button logic
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollButton(window.scrollY > 100);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Table scroll logic for internal scrolling
+  useEffect(() => {
+    const tableContainer = tableRef.current;
+    if (!tableContainer) return;
+
+    const handleTableScroll = () => {
+      setTableScrollTop(tableContainer.scrollTop);
+      setTableScrollHeight(tableContainer.scrollHeight);
+    };
+
+    tableContainer.addEventListener('scroll', handleTableScroll);
+    return () => tableContainer.removeEventListener('scroll', handleTableScroll);
   }, []);
 
   const handleChange = (e) => {
@@ -113,11 +140,11 @@ function AttendanceSummary() {
       )}
 
       {/* Title */}
-      <div className="row mb-4">
+      {/* <div className="row mb-4">
         <div className="col-md-12">
           <h2>{isEmployeeView ? "My Summary & History" : "Attendance Summary Report"}</h2>
         </div>
-      </div>
+      </div> */}
 
       {/* Filter Section */}
       <div className="row mb-4">
@@ -267,15 +294,17 @@ function AttendanceSummary() {
                   <p className="mt-2">Loading attendance records...</p>
                 </div>
               ) : records.length > 0 ? (
-                <div className="table-responsive">
+                <div 
+                  ref={tableRef}
+                  className="table-responsive" 
+                  style={{ maxHeight: '60vh', overflowY: 'auto' }}
+                >
                   <table className="table table-hover mb-0">
                     <thead className="table-dark">
                       <tr>
-                        
                         <th>Date</th>
                         <th>Status</th>
                         <th>Check In</th>
-                
                         <th>Remarks</th>
                       </tr>
                     </thead>
@@ -295,7 +324,6 @@ function AttendanceSummary() {
                             </span>
                           </td>
                           <td>{record.check_in_time || '--:--'}</td>
-                         
                           <td>
                             {record.remarks ? (
                               <span className="text-muted small" title={record.remarks}>
@@ -307,6 +335,30 @@ function AttendanceSummary() {
                       ))}
                     </tbody>
                   </table>
+
+                  {/* Simple Table Scroll Down Button */}
+                  {records.length > 20 && tableScrollTop + 500 < tableScrollHeight && (
+                    <button
+                      className="btn btn-primary position-absolute bottom-0 end-0 m-3 p-2 shadow"
+                      style={{
+                        borderRadius: '50%',
+                        width: '45px',
+                        height: '45px',
+                        zIndex: 10,
+                        fontSize: '1.2rem',
+                        background: 'linear-gradient(135deg, #0d6efd, #0b5ed7)'
+                      }}
+                      onClick={() => {
+                        tableRef.current?.scrollTo({
+                          top: tableRef.current.scrollHeight,
+                          behavior: 'smooth'
+                        });
+                      }}
+                      title="Scroll table down"
+                    >
+                      ↓
+                    </button>
+                  )}
                 </div>
               ) : (
                 <div className="text-center py-5">
@@ -321,6 +373,25 @@ function AttendanceSummary() {
           </div>
         </div>
       </div>
+
+      {/* Scroll to Bottom Button */}
+      {showScrollButton && (
+        <button
+          className="btn btn-primary position-fixed bottom-0 end-0 m-4 p-3 shadow-lg"
+          style={{
+            borderRadius: '50%',
+            width: '60px',
+            height: '60px',
+            zIndex: 1050,
+            fontSize: '1.5rem',
+            transition: 'all 0.3s ease'
+          }}
+onClick={() => window.scrollTo({ top: Math.max(document.body.scrollHeight, document.documentElement.scrollHeight), behavior: 'smooth' })}
+          title="Scroll to bottom"
+        >
+          ↓
+        </button>
+      )}
     </div>
   );
 }

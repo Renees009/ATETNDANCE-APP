@@ -7,7 +7,7 @@ const MainLayout = ({ children, isEmployeePortal = false }) => {
     <>
       {/* Navbar */}
       {!isEmployeePortal && (
-        <nav className="navbar navbar-expand-lg navbar-dark" style={{ background: "#6a00f4" }}>
+        <nav className="navbar navbar-expand-lg navbar-dark" style={{ background: 'linear-gradient(135deg, #1e3c72, #2a5298)' }}>
           <div className="container-fluid">
             <Link className="navbar-brand fw-bold fs-4" to="/dashboard">
                Attendance System
@@ -75,12 +75,12 @@ const MainLayout = ({ children, isEmployeePortal = false }) => {
       )}
 
       {/* Main Content */}
-      <div className="container-fluid mt-4">
+      <div className="container-fluid mt-4 page-container">
         {children}
       </div>
 
       {/* Footer */}
-      <footer className="bg-light text-center py-4 mt-5">
+      <footer className="text-center py-4 mt-5" style={{background: 'linear-gradient(135deg, #1a3560, #244877)'}}>
         {/* Footer content removed as per original */}
       </footer>
     </>
