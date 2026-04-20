@@ -3,7 +3,8 @@ import { useNavigate } from "react-router-dom";
 
 function ChooseEmployee() {
   const [employees, setEmployees] = useState([]);
-  const [selectedEmployee, setSelectedEmployee] = useState("");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -36,10 +37,18 @@ function ChooseEmployee() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (selectedEmployee) {
-      localStorage.setItem("selectedEmployeeId", selectedEmployee);
-      navigate(`/employee-home/${selectedEmployee}`);
+    if (username !== password || !username.trim()) {
+      setError("Username and password must be identical and match your Employee ID");
+      return;
     }
+    const emp = employees.find(e => e.employee_id === username.trim());
+    if (!emp) {
+      setError("Invalid Employee ID. Please check and try again.");
+      return;
+    }
+    localStorage.setItem("selectedEmployeeId", username.trim());
+    navigate(`/employee-home/${username.trim()}`);
+    setError(null);
   };
 
   // Loading UI
@@ -82,7 +91,7 @@ function ChooseEmployee() {
           <div className="text-center mb-4">
             <h5 className="fw-semibold mb-1">Employee Portal</h5>
             <p className="text-muted small mb-0">
-              Select your profile to continue
+              Enter your Employee ID as username and password
             </p>
           </div>
 
@@ -96,42 +105,43 @@ function ChooseEmployee() {
           {/* Form */}
           <form onSubmit={handleSubmit}>
             <div className="mb-3">
-              <label className="form-label small fw-semibold">
-                Employee
-              </label>
-
-              <select
-                className="form-select"
-                value={selectedEmployee}
-                onChange={(e) => setSelectedEmployee(e.target.value)}
-                required
+              <label className="form-label small fw-semibold">Username (Employee ID)</label>
+              <input
+                type="text"
+                className="form-control"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="e.g., EMP001"
                 style={{ padding: "10px", borderRadius: "6px" }}
-              >
-                <option value="">Select an employee</option>
-
-                {employees.map((emp, index) => (
-                  <option key={emp.employee_id || index} value={emp.employee_id}>
-                    {emp.full_name ||
-                      `${emp.first_name || ""} ${emp.last_name || ""}`.trim()}{" "}
-                    ({emp.employee_id})
-                  </option>
-                ))}
-              </select>
-
-              {employees.length === 0 && !error && (
-                <small className="text-muted">
-                  No employees available
-                </small>
-              )}
+              />
             </div>
+            <div className="mb-3">
+              <label className="form-label small fw-semibold">Password (Employee ID)</label>
+              <input
+                type="password"
+                className="form-control"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Enter same Employee ID"
+                style={{ padding: "10px", borderRadius: "6px" }}
+              />
+            </div>
+            {employees.length === 0 && !error && !loading && (
+              <small className="text-muted d-block mb-3">
+                No employees available
+              </small>
+            )}
+            {error && (
+              <div className="alert alert-danger small mb-3">{error}</div>
+            )}
 
             <button
               type="submit"
               className="btn btn-dark w-100"
-              disabled={!selectedEmployee}
+              disabled={loading || username.trim() !== password.trim() || !username.trim()}
               style={{ padding: "10px", borderRadius: "6px" }}
             >
-              Continue
+              {loading ? "Logging in..." : "Login"}
             </button>
           </form>
 

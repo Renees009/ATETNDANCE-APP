@@ -159,7 +159,7 @@ fetch(`http://127.0.0.1:8000/attendance/api/employees/${employeeId}/`)
   const showSuccess = (msg) => {
     setSuccessMsg(msg);
     setErrorMsg("");
-    setTimeout(() => setSuccessMsg(""), 3000);
+    setTimeout(() => setSuccessMsg(""), 36000000); // 10 hours
   };
 
   const showError = (msg) => {
@@ -234,8 +234,7 @@ fetch(`http://127.0.0.1:8000/attendance/api/employees/${employeeId}/`)
         check_in_time: formData.check_in_time 
       });
       
-      // Clear success flag after 5s
-      setTimeout(() => setRecentSubmitSuccess(false), 5000);
+      // Clear success flag after 10 hours
       
     } catch (error) {
       // Handle backend duplicate or other errors
@@ -432,7 +431,7 @@ fetch(`http://127.0.0.1:8000/attendance/api/employees/${employeeId}/`)
                 ) : recentSubmitSuccess ? (
                   <tr>
                     <td colSpan="7" className="text-center text-success fw-bold p-4">
-                       Attendance marked successfully! Refreshing from server...
+                       Today's attendance marked successfully
                     </td>
                   </tr>
                 ) : (
