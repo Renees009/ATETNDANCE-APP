@@ -20,6 +20,7 @@ import AttendanceSummary from './Components/attendance_summary';
 import AttendanceReport from './Components/attendance_report';
 import ChooseEmployee from './Components/choose_employee';
 import EmployeeHome from './Components/employee_home';
+import AdminLogin from './Components/admin_login';
 
 function App() {
   // Simple mock auth check
@@ -30,6 +31,7 @@ function App() {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/" element={<Login />} />
+        <Route path="/admin-login" element={<AdminLogin />} />
         <Route path="/dashboard" element={<MainLayout><Dashboard /></MainLayout>} />
         <Route path="/employees" element={<MainLayout><EmployeeList /></MainLayout>} />
         <Route path="/add-employee" element={<MainLayout><AddEmployee /></MainLayout>} />
@@ -46,7 +48,7 @@ function App() {
         <Route path="/attendance-report" element={<MainLayout><AttendanceReport /></MainLayout>} />
         <Route path="/employees/choose" element={<ChooseEmployee />} />
         <Route path="/employee-home/:employeeId" element={<EmployeeHome />} />
-        <Route path="*" element={<Navigate to="/dashboard" />} />
+        <Route path="*" element={!isAuthenticated ? <Navigate to="/login" /> : <Navigate to="/dashboard" />} />
       </Routes>
     </Router>
   );

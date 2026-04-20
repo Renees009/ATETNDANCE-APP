@@ -17,16 +17,24 @@ function AttendanceHistory() {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const query = `employee=${filters.employee}&status=${filters.status}&month=${filters.month}&year=${filters.year}`;
+    try {
+      const params = new URLSearchParams({
+        employee: filters.employee,
+        status: filters.status,
+        month: filters.month,
+        year: filters.year
+      }).toString();
 
-    fetch(`http://127.0.0.1:8000/api/attendance-history/?${query}`)
-      .then((res) => res.json())
-      .then((data) => {
-        setRecords(data.records || []);
-      });
+      const response = await fetch(`http://127.0.0.1:8000/attendance/api/attendance-history/?${params}`);
+      const data = await response.json();
+      setRecords(data.records || []);
+    } catch (error) {
+      console.error('Filter failed:', error);
+      setRecords([]);
+    }
   };
 
   const getStatusBadge = (status) => {
@@ -68,21 +76,22 @@ function AttendanceHistory() {
         <div className="col-md-12">
           <div className="card">
             <div className="card-header">
-              <h5 className="mb-0">Advanced Filtering</h5>
+              <h5 className="mb-0"></h5>
             </div>
 
             <div className="card-body">
               <form onSubmit={handleSubmit}>
                 <div className="row g-3">
                   
-                  <div className="col-md-2">
-                    <label className="form-label">Employee</label>
+                  <div className="col-md-3">
+                    <label className="form-label">Employee ID/Name</label>
                     <input
                       type="text"
                       name="employee"
                       className="form-control"
                       value={filters.employee}
                       onChange={handleChange}
+                      placeholder="e.g. EMP0001 or John"
                     />
                   </div>
 
@@ -163,10 +172,7 @@ function AttendanceHistory() {
                     <th>Status</th>
                     <th>Check In</th>
                     <th>Check Out</th>
-                    <th>Reason</th>
                     <th>Remarks</th>
-                    <th>Editability</th>
-                    <th>Actions</th>
                   </tr>
                 </thead>
 
@@ -181,33 +187,7 @@ function AttendanceHistory() {
                         <td>{getStatusBadge(record.status)}</td>
                         <td>{record.check_in_time || "--"}</td>
                         <td>{record.check_out_time || "--"}</td>
-                        <td>{record.remarks || "--"}</td>
-                        <td>{truncateText(record.remarks)}</td>
-
-                        <td>
-                          {record.is_editable ? (
-                            <span className="badge bg-success">
-                              Editable
-                            </span>
-                          ) : (
-                            <span className="badge bg-secondary">
-                              Read-only
-                            </span>
-                          )}
-                        </td>
-
-                        <td>
-                          {record.is_editable ? (
-                            <a
-                              href={`/edit-attendance/${record.id}`}
-                              className="btn btn-sm btn-warning"
-                            >
-                              Edit
-                            </a>
-                          ) : (
-                            <span className="text-muted">-</span>
-                          )}
-                        </td>
+                        <td>{record.remarks ? truncateText(record.remarks, 5) : "--"}</td>
                       </tr>
                     ))
                   ) : (

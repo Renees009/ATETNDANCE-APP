@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import api from '../api.js';
 
 function Dashboard() {
   const [stats, setStats] = useState({
@@ -12,13 +13,24 @@ function Dashboard() {
   const [attendanceData, setAttendanceData] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // Fetch dashboard data
+// Fetch dashboard data using api helper + error handling
+  const [statsLoading, setStatsLoading] = useState(true);
+  const [statsError, setStatsError] = useState(null);
+
   useEffect(() => {
-    fetch("http://127.0.0.1:8000/api/dashboard/")
-      .then((res) => res.json())
-      .then((data) => {
+    const loadStats = async () => {
+      try {
+        setStatsLoading(true);
+        const data = await api.getDashboard();
         setStats(data);
-      });
+      } catch (error) {
+        console.error('Dashboard stats fetch failed:', error);
+        setStatsError(error.message);
+      } finally {
+        setStatsLoading(false);
+      }
+    };
+    loadStats();
   }, []);
 
   // Fetch attendance data based on view type
@@ -46,40 +58,57 @@ function Dashboard() {
 
       {/* Stats Cards */}
       <div className="row g-4">
-        
-        <div className="col-md-3">
-          <div className="stat-card text-center">
-            <div className="stat-number">{stats.total_employees}</div>
-            <div className="stat-label">Total Employees</div>
-            <div className="mt-2">
-              <a href="/employees" className="btn btn-sm btn-outline-primary">
-                View All
-              </a>
+        {statsLoading ? (
+          <div className="col-12 text-center py-5">
+            <div className="spinner-border text-primary" role="status">
+              <span className="visually-hidden">Loading stats...</span>
+            </div>
+            <p className="mt-2 text-muted">Loading dashboard stats...</p>
+          </div>
+        ) : statsError ? (
+          <div className="col-12">
+            <div className="alert alert-warning">
+              <h6>Stats unavailable</h6>
+              <p>{statsError}</p>
+              <small>Check if backend server is running at http://127.0.0.1:8000</small>
             </div>
           </div>
-        </div>
+        ) : (
+          <>
+            <div className="col-md-3">
+              <div className="stat-card text-center">
+                <div className="stat-number">{stats.total_employees}</div>
+                <div className="stat-label">Total Employees</div>
+                <div className="mt-2">
+                  <a href="/employees" className="btn btn-sm btn-outline-primary">
+                    View All
+                  </a>
+                </div>
+              </div>
+            </div>
 
-        <div className="col-md-3">
-          <div className="stat-card text-center">
-            <div className="stat-number">{stats.present_today}</div>
-            <div className="stat-label">Present Today</div>
-          </div>
-        </div>
+            <div className="col-md-3">
+              <div className="stat-card text-center">
+                <div className="stat-number">{stats.present_today}</div>
+                <div className="stat-label">Present Today</div>
+              </div>
+            </div>
 
-        <div className="col-md-3">
-          <div className="stat-card text-center">
-            <div className="stat-number">{stats.absent_today}</div>
-            <div className="stat-label">Absent Today</div>
-          </div>
-        </div>
+            <div className="col-md-3">
+              <div className="stat-card text-center">
+                <div className="stat-number">{stats.absent_today}</div>
+                <div className="stat-label">Absent Today</div>
+              </div>
+            </div>
 
-        <div className="col-md-3">
-          <div className="stat-card text-center">
-            <div className="stat-number">{stats.wfh_today}</div>
-            <div className="stat-label">Work From Home</div>
-          </div>
-        </div>
-
+            <div className="col-md-3">
+              <div className="stat-card text-center">
+                <div className="stat-number">{stats.wfh_today}</div>
+                <div className="stat-label">Work From Home</div>
+              </div>
+            </div>
+          </>
+        )}
       </div>
 
       {/* Quick Actions */}
@@ -91,40 +120,31 @@ function Dashboard() {
               <h5 className="mb-0">Quick Actions</h5>
             </div>
 
-            <div className="card-body">
-              <div className="row">
+            <div className="card-body d-flex justify-content-center">
+              <div className="row g-4 justify-content-center w-75">
 
-                <div className="col-md-3 mb-2">
+                <div className="col-md-4">
                   <a
                     href="/add-employee"
-                    className="btn btn-primary w-100"
+                    className="btn btn-primary w-100 h-100 d-flex align-items-center justify-content-center flex-column"
                   >
                     ➕ Add Employee
                   </a>
                 </div>
 
-                <div className="col-md-3 mb-2">
+                <div className="col-md-4">
                   <a
-                    href="/mark-attendance"
-                    className="btn btn-success w-100"
+                    href="/attendance-history"
+                    className="btn btn-info w-100 h-100 d-flex align-items-center justify-content-center flex-column"
                   >
-                    ✓ Mark Attendance
+                     View Attendance
                   </a>
                 </div>
 
-                <div className="col-md-3 mb-2">
-                  <a
-                    href="/attendance-by-month"
-                    className="btn btn-info w-100"
-                  >
-                    🗓️ View By Month
-                  </a>
-                </div>
-
-                <div className="col-md-3 mb-2">
+                <div className="col-md-4">
                   <a
                     href="/attendance-summary"
-                    className="btn btn-warning w-100"
+                    className="btn btn-warning w-100 h-100 d-flex align-items-center justify-content-center flex-column"
                   >
                      Reports
                   </a>

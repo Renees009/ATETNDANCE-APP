@@ -8,9 +8,8 @@ function Login() {
     localStorage.removeItem("authToken");
   }, []);
 
-  const handleAdminLogin = () => {
-    localStorage.setItem("authToken", "admin-mock-token");
-    navigate("/dashboard");
+const handleAdminLogin = () => {
+    navigate("/admin-login");
   };
 
   const handleEmployeeLogin = () => {

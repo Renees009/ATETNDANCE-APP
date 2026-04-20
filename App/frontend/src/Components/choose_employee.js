@@ -43,7 +43,7 @@ function ChooseEmployee() {
     }
     const emp = employees.find(e => e.employee_id === username.trim());
     if (!emp) {
-      setError("Invalid Employee ID. Please check and try again.");
+      setError("Invalid Username/Password. Please check and try again.");
       return;
     }
     localStorage.setItem("selectedEmployeeId", username.trim());
@@ -89,40 +89,40 @@ function ChooseEmployee() {
 
           {/* Header */}
           <div className="text-center mb-4">
-            <h5 className="fw-semibold mb-1">Employee Portal</h5>
+            <h5 className="fw-semibold mb-1">Employee Login</h5>
             <p className="text-muted small mb-0">
-              Enter your Employee ID as username and password
+            
             </p>
           </div>
 
           {/* Error */}
           {error && (
             <div className="alert alert-danger small">
-              Unable to load employees. Please try again.
+             Please try again.
             </div>
           )}
 
           {/* Form */}
           <form onSubmit={handleSubmit}>
             <div className="mb-3">
-              <label className="form-label small fw-semibold">Username (Employee ID)</label>
+              <label className="form-label small fw-semibold">Username </label>
               <input
                 type="text"
                 className="form-control"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                placeholder="e.g., EMP001"
+                
                 style={{ padding: "10px", borderRadius: "6px" }}
               />
             </div>
             <div className="mb-3">
-              <label className="form-label small fw-semibold">Password (Employee ID)</label>
+              <label className="form-label small fw-semibold">Password </label>
               <input
                 type="password"
                 className="form-control"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter same Employee ID"
+    
                 style={{ padding: "10px", borderRadius: "6px" }}
               />
             </div>

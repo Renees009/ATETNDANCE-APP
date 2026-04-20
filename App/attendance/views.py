@@ -56,7 +56,7 @@ def employee_home(request, employee_id):
 
 def dashboard(request):
     """Dashboard view showing attendance statistics"""
-    today = datetime.today().date()
+    today = timezone.localdate()
     
     total_employees = Employee.objects.filter(is_active=True).count()
     present_today = Attendance.objects.filter(
@@ -80,12 +80,12 @@ def dashboard(request):
         'wfh_today': wfh_today,
         'today': today,
     }
-    return render(request, 'frontend/src/Components/dashboard.js', context)
+    return render(request, 'attendance/dashboard.html', context)  # Fixed template path
 
 @csrf_exempt
 def dashboard_api(request):
     """API endpoint for dashboard stats"""
-    today = datetime.today().date()
+    today = timezone.localdate()
     
     total_employees = Employee.objects.filter(is_active=True).count()
     present_today = Attendance.objects.filter(
@@ -100,6 +100,9 @@ def dashboard_api(request):
         attendance_date=today,
         status='WORKING_LEAVE'
     ).count()
+    
+    # Debug logging for zero stats
+    print(f"DEBUG Dashboard API {today}: total_emp={total_employees}, present={present_today}, absent={absent_today}, wfh={wfh_today}")
     
     context = {
         'total_employees': total_employees,

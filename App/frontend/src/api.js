@@ -1,4 +1,4 @@
-const API_BASE = 'http://127.0.0.1:8000/attendance';
+const API_BASE = 'http://127.0.0.1:8000/attendance/';
 
 const apiCall = async (endpoint, options = {}) => {
   const url = `${API_BASE}${endpoint}`;
