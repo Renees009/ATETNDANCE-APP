@@ -190,6 +190,31 @@ def add_employee_api(request):
             form = EmployeeForm(data)
             if form.is_valid():
                 employee = form.save()
+                
+                # Auto-generate AttendanceReport for current month
+                today = date.today()
+                days_in_month = monthrange(today.year, today.month)[1]
+                working_days = sum(1 for d in range(1, days_in_month + 1) 
+                                 if date(today.year, today.month, d).weekday() < 5)
+                
+                AttendanceReport.objects.get_or_create(
+                    employee=employee,
+                    month=today.month,
+                    year=today.year,
+                    defaults={
+                        'total_days': working_days,
+                        'present_days': 0,
+                        'absent_days': 0,
+                        'late_days': 0,
+                        'half_days': 0,
+                        'working_leave_days': 0,
+                        'nfd_days': 0,
+                        'attendance_percentage': 0,
+                        'absent_with_reason': '{}',
+                        'generated_at': timezone.now()
+                    }
+                )
+                
                 return JsonResponse({
                     'success': True,
                     'message': 'Employee created successfully!',

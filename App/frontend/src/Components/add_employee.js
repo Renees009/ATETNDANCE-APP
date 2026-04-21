@@ -34,7 +34,7 @@ function AddEmployee() {
     setLoading(true);
 
     try {
-      const response = await fetch('http://127.0.0.1:8000/attendance/api/employees/', {
+      const response = await fetch('http://127.0.0.1:8000/attendance/api/employees/create/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -45,13 +45,26 @@ function AddEmployee() {
       const data = await response.json();
       
       if (data.success) {
-        alert('Employee added successfully!');
-        window.location.href = '/employees';
+        alert('New Employee added successfully!');
+        // Reset form
+        setFormData({
+          employee_id: "",
+          email: "",
+          first_name: "",
+          last_name: "",
+          phone: "",
+          department: "",
+          position: "",
+          date_of_joining: "",
+          is_active: true,
+        });
+        setErrors({});
       } else {
         setErrors(data.errors || { general: 'Validation error' });
       }
     } catch (error) {
-      alert('Error adding employee: ' + error.message);
+      console.error('Add employee failed:', error);
+      alert('Error saving employee: ' + error.message);
     } finally {
       setLoading(false);
     }
@@ -194,7 +207,7 @@ function AddEmployee() {
                     onChange={handleChange}
                     required
                   />
-                  {errors.dyate_of_joining && (
+                  {errors.date_of_joining && (
                     <div className="text-danger small">{errors.date_of_joining}</div>
                   )}
                 </div>
@@ -218,7 +231,7 @@ function AddEmployee() {
 
               <div className="mb-3">
                 <button type="submit" className="btn btn-success me-2" disabled={loading}>
-                  {loading ? 'Adding...' : 'Save Employee'}
+                  {loading ? 'Adding...' : 'Add Employee'}
                 </button>
                 <Link to="/employees" className="btn btn-secondary">
                   Cancel

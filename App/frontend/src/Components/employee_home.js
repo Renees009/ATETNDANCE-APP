@@ -18,7 +18,7 @@ function EmployeeHome({ employeeId }) {
         const empData = data.employee;
         if (empData) setEmployee(empData);
       })
-      .catch((err) => console.error('❌ Employee API failed:', err));
+      .catch((err) => console.error(' Employee API failed:', err));
 
     fetch(`http://127.0.0.1:8000/attendance/api/mark-attendance/`)
       .then(res => res.json())

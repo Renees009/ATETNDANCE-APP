@@ -16,7 +16,6 @@ function Dashboard() {
 // Fetch dashboard data using api helper + error handling
   const [statsLoading, setStatsLoading] = useState(true);
   const [statsError, setStatsError] = useState(null);
-
   useEffect(() => {
     const loadStats = async () => {
       try {
@@ -143,7 +142,7 @@ function Dashboard() {
 
                 <div className="col-md-4">
                   <a
-                    href="/attendance-summary"
+                    href="/attendance-report"
                     className="btn btn-warning w-100 h-100 d-flex align-items-center justify-content-center flex-column"
                   >
                      Reports

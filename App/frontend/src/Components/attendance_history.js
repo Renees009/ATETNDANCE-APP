@@ -84,7 +84,7 @@ function AttendanceHistory() {
                 <div className="row g-3">
                   
                   <div className="col-md-3">
-                    <label className="form-label">Employee ID/Name</label>
+                    <label className="form-label">Employee ID</label>
                     <input
                       type="text"
                       name="employee"
