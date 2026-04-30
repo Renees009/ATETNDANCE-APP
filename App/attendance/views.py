@@ -569,6 +569,89 @@ def attendance_summary_api(request):
 
 
 @csrf_exempt
+def attendance_reports_api(request):
+    """API: Attendance reports with summary + individual records"""
+    month = request.GET.get('month', datetime.now().month)
+    year = request.GET.get('year', datetime.now().year)
+    employee_id = request.GET.get('employee', '')
+    
+    try:
+        from calendar import monthrange
+        y, m = int(year), int(month)
+        days_in_month = monthrange(y, m)[1]
+        start_date = date(y, m, 1)
+        end_date = date(y, m, days_in_month)
+        total_working_days = sum(1 for d in range(1, days_in_month + 1) if date(y, m, d).weekday() < 5)
+        
+        employees = Employee.objects.filter(is_active=True)
+        if employee_id:
+            employees = employees.filter(employee_id__icontains=employee_id)
+        
+        reports = []
+        for emp in employees:
+            # Aggregate counts by status
+            records = Attendance.objects.filter(
+                employee=emp,
+                attendance_date__gte=start_date,
+                attendance_date__lte=end_date
+            ).values('status').annotate(count=Count('status'))
+            
+            summary = {
+                'present_days': 0,
+                'absent_days': 0,
+                'late_days': 0,
+                'half_days': 0,
+                'leave_days': 0,
+            }
+            
+            for r in records:
+                status = r['status']
+                count = r['count']
+                if status == 'PRESENT':
+                    summary['present_days'] = count
+                elif status == 'ABSENT':
+                    summary['absent_days'] = count
+                elif status == 'LATE':
+                    summary['late_days'] = count
+                elif status == 'NFD':
+                    summary['half_days'] = count
+                elif status == 'WORKING_LEAVE':
+                    summary['leave_days'] = count
+            
+            # Calculate attendance percentage
+            if total_working_days > 0:
+                attendance_percentage = round((summary['present_days'] / total_working_days) * 100, 2)
+            else:
+                attendance_percentage = 0.0
+            
+            # Fetch individual attendance records for this employee in the period
+            detail_records = list(Attendance.objects.filter(
+                employee=emp,
+                attendance_date__gte=start_date,
+                attendance_date__lte=end_date
+            ).values('attendance_date', 'status', 'check_in_time', 'remarks').order_by('attendance_date'))
+            
+            reports.append({
+                'employee_name': f"{emp.first_name} {emp.last_name}",
+                'employee_id': emp.employee_id,
+                'month': m,
+                'year': y,
+                'total_days': total_working_days,
+                'present_days': summary['present_days'],
+                'absent_days': summary['absent_days'],
+                'late_days': summary['late_days'],
+                'half_days': summary['half_days'],
+                'leave_days': summary['leave_days'],
+                'attendance_percentage': attendance_percentage,
+                'records': detail_records,
+            })
+        
+        return JsonResponse({'reports': reports, 'month': m, 'year': y})
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
+
+
+@csrf_exempt
 def attendance_history_api(request):
     """API: Full attendance history with employee filter"""
     records = Attendance.objects.select_related('employee').values(

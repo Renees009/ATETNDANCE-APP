@@ -76,36 +76,55 @@ function Dashboard() {
           <>
             <div className="col-md-3">
               <div className="stat-card text-center">
-                <div className="stat-number">{stats.total_employees}</div>
-                <div className="stat-label">Total Employees</div>
-                <div className="mt-2">
-                  <a href="/employees" className="btn btn-sm btn-outline-primary">
-                    View All
-                  </a>
+                <div className="stat-number" style={{ color: "#fff" }}>
+                {stats.total_employees}
+              </div>
+
+              {/* Label */}
+              <div className="stat-label" style={{ color: "#fff" }}>
+                Total Employees
+              </div>
+
+              <div className="mt-2">
+                <a href="/employees" className="btn btn-sm btn-outline-primary">
+                  View All
+                </a>
+              </div>
+              </div>
+            </div>
+
+            <div className="col-md-3">
+            <div className="stat-card text-center">
+              <div className="stat-number" style={{ color: "#fff" }}>
+                {stats.present_today}
+              </div>
+              <div className="stat-label" style={{ color: "#fff" }}>
+                Present Today
+              </div>
+            </div>
+          </div>
+
+              <div className="col-md-3">
+                <div className="stat-card text-center">
+                  <div className="stat-number" style={{ color: "#fff" }}>
+                    {stats.absent_today}
+                  </div>
+                  <div className="stat-label" style={{ color: "#fff" }}>
+                    Absent Today
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div className="col-md-3">
-              <div className="stat-card text-center">
-                <div className="stat-number">{stats.present_today}</div>
-                <div className="stat-label">Present Today</div>
+              <div className="col-md-3">
+                <div className="stat-card text-center">
+                  <div className="stat-number" style={{ color: "#fff" }}>
+                    {stats.wfh_today}
+                  </div>
+                  <div className="stat-label" style={{ color: "#fff" }}>
+                    Work From Home
+                  </div>
+                </div>
               </div>
-            </div>
-
-            <div className="col-md-3">
-              <div className="stat-card text-center">
-                <div className="stat-number">{stats.absent_today}</div>
-                <div className="stat-label">Absent Today</div>
-              </div>
-            </div>
-
-            <div className="col-md-3">
-              <div className="stat-card text-center">
-                <div className="stat-number">{stats.wfh_today}</div>
-                <div className="stat-label">Work From Home</div>
-              </div>
-            </div>
           </>
         )}
       </div>
