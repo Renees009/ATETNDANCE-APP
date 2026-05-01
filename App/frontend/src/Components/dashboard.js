@@ -176,7 +176,7 @@ function Dashboard() {
       </div>
 
       {/* Attendance View Dropdown + Table */}
-      <div className="row mt-4">
+      {/* <div className="row mt-4">
         <div className="col-md-12">
           <div className="card">
             <div className="card-header d-flex justify-content-between align-items-center">
@@ -238,7 +238,7 @@ function Dashboard() {
             </div>
           </div>
         </div>
-      </div>
+      </div> */}
 
     </div>
   );

@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 
-function EditEmployee({ employeeId }) {
+function EditEmployee() {
+  const { employeeId } = useParams();
+  const navigate = useNavigate();
+  
   const [formData, setFormData] = useState({
     employee_id: "",
     email: "",
@@ -13,14 +17,33 @@ function EditEmployee({ employeeId }) {
     is_active: true,
   });
 
+  const [loading, setLoading] = useState(true);
   const [errors, setErrors] = useState({});
+  const [saving, setSaving] = useState(false);
 
-  // Fetch employee data
+  // Fetch employee data on component mount
   useEffect(() => {
-    fetch(`http://127.0.0.1:8000/api/employees/${employeeId}/`)
+    fetch(`http://127.0.0.1:8000/attendance/api/employees/${employeeId}/`)
       .then((res) => res.json())
       .then((data) => {
-        setFormData(data);
+        if (data.employee) {
+          setFormData({
+            employee_id: data.employee.employee_id || "",
+            email: data.employee.email || "",
+            first_name: data.employee.first_name || "",
+            last_name: data.employee.last_name || "",
+            phone: data.employee.phone || "",
+            department: data.employee.department || "",
+            position: data.employee.position || "",
+            date_of_joining: data.employee.date_of_joining || "",
+            is_active: data.employee.is_active !== undefined ? data.employee.is_active : true,
+          });
+        }
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("Error fetching employee:", err);
+        setLoading(false);
       });
   }, [employeeId]);
 
@@ -35,8 +58,10 @@ function EditEmployee({ employeeId }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    setSaving(true);
+    setErrors({});
 
-    fetch(`http://127.0.0.1:8000/api/employees/${employeeId}/`, {
+    fetch(`http://127.0.0.1:8000/attendance/api/employees/${employeeId}/update/`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -45,13 +70,37 @@ function EditEmployee({ employeeId }) {
     })
       .then((res) => res.json())
       .then((data) => {
-        if (data.errors) {
+        setSaving(false);
+        if (data.error) {
+          alert("Error: " + data.error);
+        } else if (data.errors) {
           setErrors(data.errors);
         } else {
           alert("Employee updated successfully!");
+          // Navigate back to employee detail page
+          navigate(`/employees/${employeeId}`);
         }
+      })
+      .catch((err) => {
+        setSaving(false);
+        console.error("Error updating employee:", err);
+        alert("Failed to update employee. Please try again.");
       });
   };
+
+  const handleCancel = () => {
+    navigate(`/employees/${employeeId}`);
+  };
+
+  if (loading) {
+    return (
+      <div className="text-center py-5">
+        <div className="spinner-border text-primary" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="row">
@@ -76,6 +125,7 @@ function EditEmployee({ employeeId }) {
                     className="form-control"
                     value={formData.employee_id}
                     onChange={handleChange}
+                    disabled
                   />
                   {errors.employee_id && (
                     <div className="text-danger">{errors.employee_id}</div>
@@ -210,16 +260,21 @@ function EditEmployee({ employeeId }) {
 
               {/* Buttons */}
               <div className="mb-3">
-                <button type="submit" className="btn btn-success">
-                  Update Employee
+                <button 
+                  type="submit" 
+                  className="btn btn-success"
+                  disabled={saving}
+                >
+                  {saving ? "Updating..." : "Update Employee"}
                 </button>
 
-                <a
-                  href={`/employee/${formData.employee_id}`}
+                <button 
+                  type="button" 
                   className="btn btn-secondary ms-2"
+                  onClick={handleCancel}
                 >
                   Cancel
-                </a>
+                </button>
               </div>
 
             </form>

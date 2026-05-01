@@ -1,22 +1,30 @@
 import React, { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
 
-function EmployeeDetail({ employeeId }) {
+function EmployeeDetail() {
+  const { employeeId } = useParams();
   const [employee, setEmployee] = useState({});
   const [attendanceRecords, setAttendanceRecords] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Fetch employee details
-    fetch(`http://127.0.0.1:8000/api/employees/${employeeId}/`)
-      .then((res) => res.json())
+    // Fetch employee details and attendance records from single API
+    fetch(`http://127.0.0.1:8000/attendance/api/employees/${employeeId}/`)
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error("Failed to fetch employee details");
+        }
+        return res.json();
+      })
       .then((data) => {
-        setEmployee(data);
-      });
-
-    // Fetch attendance records (last 30 days)
-    fetch(`http://127.0.0.1:8000/api/employees/${employeeId}/attendance/`)
-      .then((res) => res.json())
-      .then((data) => {
-        setAttendanceRecords(data.records || []);
+        setEmployee(data.employee || {});
+        setAttendanceRecords(data.attendance_records || []);
+        setLoading(false);
+      })
+      .catch((err) => {
+        setError(err.message);
+        setLoading(false);
       });
   }, [employeeId]);
 
@@ -36,6 +44,24 @@ function EmployeeDetail({ employeeId }) {
         return <span className="badge bg-light">--</span>;
     }
   };
+
+  if (loading) {
+    return (
+      <div className="text-center py-5">
+        <div className="spinner-border text-primary" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="alert alert-danger" role="alert">
+        Error: {error}
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -80,7 +106,7 @@ function EmployeeDetail({ employeeId }) {
               </p>
 
               <a
-                href={`/edit-employee/${employee.employee_id}`}
+                href={`/employees/${employee.employee_id}/edit`}
                 className="btn btn-warning"
               >
                 Edit

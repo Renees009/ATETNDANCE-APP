@@ -398,11 +398,11 @@ def mark_attendance_api(request):
         today = timezone.localdate()
         today_attendance = Attendance.objects.filter(attendance_date=today).select_related('employee').values(
             'id', 'employee_id', 'employee__first_name', 'employee__last_name', 'status', 
-            'check_in_time', 'check_out_time', 'remarks'
+            'check_in_time', 'check_out_time', 'remarks', 'attendance_date'
         )
         recorded_ids = list(Attendance.objects.filter(attendance_date=today).values_list('employee__id', flat=True))
         return JsonResponse({
-            'today_attendance': list(today_attendance),
+            'records': list(today_attendance),
             'recorded_ids': recorded_ids,
             'today': today.isoformat()
         })
@@ -664,6 +664,29 @@ def attendance_history_api(request):
     if employee_id:
         records = records.filter(employee__employee_id=employee_id)
     
+    # Apply status filter
+    status = request.GET.get('status')
+    if status:
+        records = records.filter(status=status)
+    
+    # Apply month filter
+    month = request.GET.get('month')
+    if month:
+        try:
+            month = int(month)
+            records = records.filter(attendance_date__month=month)
+        except ValueError:
+            pass
+    
+    # Apply year filter
+    year = request.GET.get('year')
+    if year:
+        try:
+            year = int(year)
+            records = records.filter(attendance_date__year=year)
+        except ValueError:
+            pass
+    
     data = list(records)
     return JsonResponse({'records': data})
 
@@ -682,7 +705,10 @@ def employee_detail_api(request, employee_id):
             'employee': {
                 'id': emp.id, 'employee_id': emp.employee_id,
                 'first_name': emp.first_name, 'last_name': emp.last_name,
-                'email': emp.email, 'department': emp.department
+                'email': emp.email, 'phone': emp.phone,
+                'department': emp.department, 'position': emp.position,
+                'date_of_joining': str(emp.date_of_joining) if emp.date_of_joining else None,
+                'is_active': emp.is_active
             },
             'attendance_records': attendance
         })
@@ -691,18 +717,76 @@ def employee_detail_api(request, employee_id):
 
 
 @csrf_exempt
+def update_employee_api(request, employee_id):
+    """API: Update employee details (PUT/POST)"""
+    if request.method not in ['POST', 'PUT']:
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    
+    try:
+        data = json.loads(request.body)
+        employee = get_object_or_404(Employee, employee_id=employee_id)
+        
+        # Update fields
+        employee.first_name = data.get('first_name', employee.first_name)
+        employee.last_name = data.get('last_name', employee.last_name)
+        employee.email = data.get('email', employee.email)
+        employee.phone = data.get('phone', employee.phone)
+        employee.department = data.get('department', employee.department)
+        employee.position = data.get('position', employee.position)
+        if 'date_of_joining' in data:
+            employee.date_of_joining = data.get('date_of_joining')
+        if 'is_active' in data:
+            employee.is_active = data.get('is_active')
+        
+        employee.save()
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Employee updated successfully',
+            'employee': {
+                'id': employee.id,
+                'employee_id': employee.employee_id,
+                'first_name': employee.first_name,
+                'last_name': employee.last_name,
+                'email': employee.email,
+                'phone': employee.phone,
+                'department': employee.department,
+                'position': employee.position,
+                'date_of_joining': str(employee.date_of_joining) if employee.date_of_joining else None,
+                'is_active': employee.is_active
+            }
+        })
+    except Employee.DoesNotExist:
+        return JsonResponse({'error': 'Employee not found'}, status=404)
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON'}, status=400)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@csrf_exempt
 def attendance_detail_api(request, record_id):
     """API: Single attendance record (GET)"""
     try:
         record = Attendance.objects.select_related('employee').get(id=record_id)
+        
+        # Check if record is editable (within 30 days)
+        from django.utils import timezone
+        today = timezone.now().date()
+        days_since = (today - record.attendance_date).days
+        is_editable = days_since <= 30
+        
         data = {
             'id': record.id,
             'employee_id': record.employee.employee_id,
             'employee': record.employee.id,
+            'employee_name': f"{record.employee.first_name} {record.employee.last_name}",
             'attendance_date': record.attendance_date.isoformat(),
             'status': record.status,
             'check_in_time': str(record.check_in_time) if record.check_in_time else None,
-            'remarks': record.remarks
+            'check_out_time': str(record.check_out_time) if record.check_out_time else None,
+            'remarks': record.remarks,
+            'is_editable': is_editable
         }
         return JsonResponse(data)
     except Attendance.DoesNotExist:
@@ -719,13 +803,34 @@ def update_attendance_api(request, record_id):
         data = json.loads(request.body)
         record = get_object_or_404(Attendance, id=record_id)
         
-        # Update fields
-        for field, value in data.items():
-            if hasattr(record, field) and field != 'id':
-                setattr(record, field, value)
+        # Update fields - handle employee separately as it's a ForeignKey
+        if 'employee' in data:
+            from .models import Employee
+            try:
+                employee_id = int(data['employee'])
+                record.employee = Employee.objects.get(id=employee_id)
+            except (ValueError, Employee.DoesNotExist):
+                pass
+        
+        if 'attendance_date' in data:
+            record.attendance_date = data['attendance_date']
+        
+        if 'status' in data:
+            record.status = data['status']
+        
+        if 'check_in_time' in data:
+            record.check_in_time = data['check_in_time'] if data['check_in_time'] else None
+        
+        if 'check_out_time' in data:
+            record.check_out_time = data['check_out_time'] if data['check_out_time'] else None
+        
+        if 'remarks' in data:
+            record.remarks = data['remarks']
         
         record.save()
-        return JsonResponse({'success': True, 'message': 'Updated'})
+        return JsonResponse({'success': True, 'message': 'Attendance updated successfully'})
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'error': 'Invalid JSON'}, status=400)
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)}, status=400)
 

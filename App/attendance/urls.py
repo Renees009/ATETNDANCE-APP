@@ -43,6 +43,7 @@ urlpatterns = [
     path('api/attendance-reports/', views.attendance_reports_api, name='attendance_reports_api'),
     path('api/attendance-history/', views.attendance_history_api, name='attendance_history_api'),
     path('api/employees/<str:employee_id>/', views.employee_detail_api, name='employee_detail_api'),
+    path('api/employees/<str:employee_id>/update/', views.update_employee_api, name='update_employee_api'),
     path('api/attendance/<int:record_id>/', views.attendance_detail_api, name='attendance_detail_api'),
     path('api/attendance/<int:record_id>/update/', views.update_attendance_api, name='update_attendance_api'),
 ]

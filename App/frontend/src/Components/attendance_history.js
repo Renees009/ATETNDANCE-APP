@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
 
 function AttendanceHistory() {
   const [filters, setFilters] = useState({
@@ -173,6 +174,7 @@ function AttendanceHistory() {
                     <th>Check In</th>
                     <th>Check Out</th>
                     <th>Remarks</th>
+                    <th>Action</th>
                   </tr>
                 </thead>
 
@@ -188,11 +190,19 @@ function AttendanceHistory() {
                         <td>{record.check_in_time || "--"}</td>
                         <td>{record.check_out_time || "--"}</td>
                         <td>{record.remarks ? truncateText(record.remarks, 5) : "--"}</td>
+                        <td>
+                          <Link
+                            to={`/attendance/${record.id}/edit`}
+                            className="btn btn-sm btn-warning"
+                          >
+                            Edit
+                          </Link>
+                        </td>
                       </tr>
                     ))
                   ) : (
                     <tr>
-                      <td colSpan="9" className="text-center py-4">
+                      <td colSpan="7" className="text-center py-4">
                         No attendance records found.
                       </td>
                     </tr>

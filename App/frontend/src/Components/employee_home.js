@@ -24,7 +24,7 @@ function EmployeeHome({ employeeId }) {
       .then(res => res.json())
       .then(data => {
         const todayRecord = (data.records || []).find(
-          rec => rec.employee_id === employeeId
+          rec => String(rec.employee_id) === String(localEmployeeId)
         );
         setTodayAttendance(todayRecord);
       });
@@ -34,8 +34,8 @@ function EmployeeHome({ employeeId }) {
       .then(data => {
         const recent = (data.records || [])
           .filter(rec =>
-            rec.employee__employee_id === employeeId ||
-            rec.employee_id === employeeId
+            rec.employee__employee_id === localEmployeeId ||
+            rec.employee_id === localEmployeeId
           )
           .slice(0, 7);
         setRecentAttendance(recent);
@@ -51,6 +51,17 @@ function EmployeeHome({ employeeId }) {
       'NFD': 'bg-warning'
     };
     return badges[status] || 'bg-secondary';
+  };
+
+  const getStatusDisplay = (status) => {
+    const statusMap = {
+      'PRESENT': 'Present',
+      'ABSENT': 'Absent',
+      'LATE': 'Late',
+      'WORKING_LEAVE': 'Work From Home',
+      'NFD': 'Half Day'
+    };
+    return statusMap[status] || status;
   };
 
   return (
@@ -114,7 +125,9 @@ function EmployeeHome({ employeeId }) {
         </div>
       </div>
 
-      {/* ================= REMAINING CODE (UNCHANGED) ================= */}
+      
+
+      {/* ================= TODAY'S STATUS ================= */}
 
       <div className="row mb-4">
         <div className="col-md-6 mb-4">
@@ -126,7 +139,7 @@ function EmployeeHome({ employeeId }) {
               {todayAttendance ? (
                 <>
                   <div className={`badge fs-3 p-3 mb-3 display-6 shadow ${getStatusBadge(todayAttendance.status)}`}>
-                    {todayAttendance.status}
+                    {getStatusDisplay(todayAttendance.status)}
                   </div>
                   <p className="mb-2">
                     <strong>Check-in:</strong> {todayAttendance.check_in_time || '--:--'}
@@ -153,10 +166,22 @@ function EmployeeHome({ employeeId }) {
               <h5 className="mb-0"> Quick Actions</h5>
             </div>
             <div className="card-body d-flex flex-column justify-content-center">
-              <a href={`/mark-attendance?employee_id=${employee.employee_id}`} 
-                 className="btn btn-success btn-lg w-100 mb-3 shadow-sm">
-                Mark Today&apos;s Attendance
-              </a>
+              {todayAttendance ? (
+                <>
+                  <div className="alert alert-success mb-3">
+                    <strong>✓ Attendance Marked for Today</strong>
+                  </div>
+                  <a href={`/mark-attendance?employee_id=${employee.employee_id}`} 
+                     className="btn btn-primary btn-lg w-100 shadow-sm">
+                    View Attendance
+                  </a>
+                </>
+              ) : (
+                <a href={`/mark-attendance?employee_id=${employee.employee_id}`} 
+                   className="btn btn-success btn-lg w-100 mb-3 shadow-sm">
+                  Mark Today's Attendance
+                </a>
+              )}
               <a href={`/attendance-summary?employee=${employee.id}`} 
                  className="btn btn-primary btn-lg w-100 shadow-sm">
                 View My Reports

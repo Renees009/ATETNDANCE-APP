@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 
-function EditAttendance({ recordId }) {
+function EditAttendance() {
+  const { attendanceId } = useParams();
+  const navigate = useNavigate();
+  
   const [formData, setFormData] = useState({
     employee: "",
     attendance_date: "",
@@ -10,13 +14,16 @@ function EditAttendance({ recordId }) {
     remarks: "",
   });
 
+  const [employeeId, setEmployeeId] = useState(null);
+  const [employeeName, setEmployeeName] = useState("");
   const [errors, setErrors] = useState({});
   const [nonFieldErrors, setNonFieldErrors] = useState([]);
   const [isEditable, setIsEditable] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   // Fetch existing record
   useEffect(() => {
-    fetch(`http://127.0.0.1:8000/api/attendance/${recordId}/`)
+    fetch(`http://127.0.0.1:8000/attendance/api/attendance/${attendanceId}/`)
       .then((res) => res.json())
       .then((data) => {
         setFormData({
@@ -27,9 +34,16 @@ function EditAttendance({ recordId }) {
           check_out_time: data.check_out_time || "",
           remarks: data.remarks || "",
         });
+        setEmployeeId(data.employee);
+        setEmployeeName(data.employee_name || "");
         setIsEditable(data.is_editable);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("Error fetching attendance:", err);
+        setLoading(false);
       });
-  }, [recordId]);
+  }, [attendanceId]);
 
   const handleChange = (e) => {
     setFormData({
@@ -41,12 +55,18 @@ function EditAttendance({ recordId }) {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    fetch(`http://127.0.0.1:8000/api/attendance/${recordId}/`, {
+    // Prepare data with employee ID
+    const updateData = {
+      ...formData,
+      employee: employeeId
+    };
+
+    fetch(`http://127.0.0.1:8000/attendance/api/attendance/${attendanceId}/update/`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(formData),
+      body: JSON.stringify(updateData),
     })
       .then((res) => res.json())
       .then((data) => {
@@ -56,9 +76,28 @@ function EditAttendance({ recordId }) {
           setNonFieldErrors(data.non_field_errors);
         } else {
           alert("Attendance updated successfully!");
+          navigate('/attendance-history');
         }
+      })
+      .catch((err) => {
+        console.error("Error updating attendance:", err);
+        alert("Failed to update attendance. Please try again.");
       });
   };
+
+  const handleCancel = () => {
+    navigate('/attendance-history');
+  };
+
+  if (loading) {
+    return (
+      <div className="text-center py-5">
+        <div className="spinner-border text-primary" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -100,19 +139,15 @@ function EditAttendance({ recordId }) {
 
               <form onSubmit={handleSubmit}>
 
-                {/* Employee */}
+                {/* Employee - Display only */}
                 <div className="mb-3">
                   <label className="form-label">Employee</label>
                   <input
                     type="text"
-                    name="employee"
                     className="form-control"
-                    value={formData.employee}
-                    onChange={handleChange}
+                    value={employeeName}
+                    disabled
                   />
-                  {errors.employee && (
-                    <div className="text-danger">{errors.employee}</div>
-                  )}
                 </div>
 
                 {/* Date */}
@@ -214,9 +249,13 @@ function EditAttendance({ recordId }) {
                     Update Attendance
                   </button>
 
-                  <a href="/attendance-history" className="btn btn-secondary ms-2">
+                  <button 
+                    type="button" 
+                    className="btn btn-secondary ms-2"
+                    onClick={handleCancel}
+                  >
                     Cancel
-                  </a>
+                  </button>
                 </div>
 
               </form>
