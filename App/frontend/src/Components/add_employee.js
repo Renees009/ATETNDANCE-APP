@@ -71,7 +71,8 @@ function AddEmployee() {
   };
 
   return (
-    <div className="row">
+    <div>
+      <div className="row">
       <div className="col-md-8 offset-md-2">
         <h2>Add New Employee</h2>
 
@@ -242,6 +243,7 @@ function AddEmployee() {
           </div>
         </div>
       </div>
+    </div>
     </div>
   );
 }

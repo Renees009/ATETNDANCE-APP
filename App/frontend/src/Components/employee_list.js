@@ -4,20 +4,34 @@ import { Link } from "react-router-dom";
 function EmployeeList() {
   const [employees, setEmployees] = useState([]);
   const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  // Fetch employees
-  const fetchEmployees = () => {
-    let url = "http://127.0.0.1:8000/attendance/api/employees/";
+  // ✅ Fetch employees
+  const fetchEmployees = async (searchValue = search) => {
+    try {
+      setLoading(true);
+      setError(null);
 
-    if (search) {
-      url += `?search=${search}`;
+      let url = "http://127.0.0.1:8000/attendance/api/employees/";
+
+      if (searchValue) {
+        url += `?search=${searchValue}`;
+      }
+
+      const res = await fetch(url);
+
+      if (!res.ok) throw new Error("Failed to fetch employees");
+
+      const data = await res.json();
+
+      setEmployees(data.employees || data || []);
+    } catch (err) {
+      console.error("Employee fetch failed:", err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
     }
-
-    fetch(url)
-      .then((res) => res.json())
-      .then((data) => {
-        setEmployees(data.employees || data);
-      });
   };
 
   useEffect(() => {
@@ -26,17 +40,16 @@ function EmployeeList() {
 
   const handleSearch = (e) => {
     e.preventDefault();
-    fetchEmployees();
+    fetchEmployees(search);
   };
 
   const clearSearch = () => {
     setSearch("");
-    fetchEmployees();
+    fetchEmployees(""); // ✅ force reload without search
   };
 
   return (
-    <div>
-
+    <>
       {/* Title */}
       <div className="row mb-4">
         <div className="col-md-12">
@@ -46,7 +59,6 @@ function EmployeeList() {
 
       {/* Search + Add */}
       <div className="row mb-4">
-
         <div className="col-md-6">
           <form onSubmit={handleSearch} className="input-group">
             <input
@@ -77,14 +89,12 @@ function EmployeeList() {
             ➕ Add New Employee
           </Link>
         </div>
-
       </div>
 
       {/* Table */}
       <div className="row">
         <div className="col-md-12">
           <div className="card">
-
             <div className="card-header">
               <h5 className="mb-0">
                 Employee List ({employees.length})
@@ -93,7 +103,6 @@ function EmployeeList() {
 
             <div className="table-responsive">
               <table className="table table-hover mb-0">
-
                 <thead className="table-light">
                   <tr>
                     <th>Employee ID</th>
@@ -107,14 +116,28 @@ function EmployeeList() {
                 </thead>
 
                 <tbody>
-                  {employees.length > 0 ? (
+                  {loading ? (
+                    <tr>
+                      <td colSpan="7" className="text-center py-4">
+                        Loading...
+                      </td>
+                    </tr>
+                  ) : error ? (
+                    <tr>
+                      <td colSpan="7" className="text-center text-danger py-4">
+                        {error}
+                      </td>
+                    </tr>
+                  ) : employees.length > 0 ? (
                     employees.map((emp, index) => (
                       <tr key={emp.id || index}>
-                        <td><strong>{emp.employee_id}</strong></td>
-                        <td>{emp.first_name} {emp.last_name}</td>
-                        <td>{emp.email}</td>
-                        <td>{emp.department}</td>
-                        <td>{emp.position}</td>
+                        <td><strong>{emp.employee_id || "--"}</strong></td>
+                        <td>
+                          {emp.first_name || ""} {emp.last_name || ""}
+                        </td>
+                        <td>{emp.email || "--"}</td>
+                        <td>{emp.department || "--"}</td>
+                        <td>{emp.position || "--"}</td>
                         <td>
                           {emp.is_active ? (
                             <span className="badge bg-success">Active</span>
@@ -146,15 +169,13 @@ function EmployeeList() {
                     </tr>
                   )}
                 </tbody>
-
               </table>
             </div>
 
           </div>
         </div>
       </div>
-
-    </div>
+    </>
   );
 }
 

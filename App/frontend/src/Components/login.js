@@ -18,21 +18,8 @@ const handleAdminLogin = () => {
   };
 
   return (
-    <div
-      className="d-flex justify-content-center align-items-center"
-      style={{
-        minHeight: "100vh",
-        background: "linear-gradient(135deg, #1e3c72, #2a5298)",
-      }}
-    >
-      <div
-        className="card shadow-lg"
-        style={{
-          width: "100%",
-          maxWidth: "420px",
-          borderRadius: "15px",
-        }}
-      >
+    <div className="app-shell d-flex justify-content-center align-items-center">
+      <div className="card panel-card shadow-sm" style={{ width: "100%", maxWidth: "420px" }}>
         <div className="card-body p-4">
 
           {/* Title */}
@@ -47,8 +34,7 @@ const handleAdminLogin = () => {
             {/* Admin Button */}
             <button
               onClick={handleAdminLogin}
-              className="btn btn-primary btn-lg"
-              style={{ borderRadius: "10px" }}
+              className="btn btn-primary btn-lg btn-pill"
             >
                Admin Login
             </button>
@@ -56,8 +42,7 @@ const handleAdminLogin = () => {
             {/* Employee Button */}
             <button
               onClick={handleEmployeeLogin}
-              className="btn btn-outline-secondary btn-lg"
-              style={{ borderRadius: "10px" }}
+              className="btn btn-outline-secondary btn-lg btn-pill"
             >
                Employee Login
             </button>

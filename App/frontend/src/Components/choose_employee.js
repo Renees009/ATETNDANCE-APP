@@ -54,37 +54,18 @@ function ChooseEmployee() {
   // Loading UI
   if (loading) {
     return (
-      <div
-        className="d-flex justify-content-center align-items-center"
-        style={{
-          minHeight: "100vh",
-          background: "linear-gradient(135deg, #1e3c72, #2a5298)",
-        }}
-      >
-        <div className="text-center text-white">
-          <div className="spinner-border text-light" role="status"></div>
-          <p className="mt-3">Fetching employee data...</p>
+      <div className="app-shell d-flex justify-content-center align-items-center">
+        <div className="text-center">
+          <div className="spinner-border text-primary" role="status"></div>
+          <p className="mt-3 text-muted">Fetching employee data...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div
-      className="d-flex justify-content-center align-items-center"
-      style={{
-        minHeight: "100vh",
-        background: "linear-gradient(135deg, #1e3c72, #2a5298)",
-      }}
-    >
-      <div
-        className="card border-0 shadow"
-        style={{
-          width: "100%",
-          maxWidth: "420px",
-          borderRadius: "12px",
-        }}
-      >
+    <div className="app-shell d-flex justify-content-center align-items-center">
+      <div className="card panel-card shadow-sm" style={{ width: "100%", maxWidth: "420px" }}>
         <div className="card-body p-4">
 
           {/* Header */}
@@ -105,25 +86,21 @@ function ChooseEmployee() {
           {/* Form */}
           <form onSubmit={handleSubmit}>
             <div className="mb-3">
-              <label className="form-label small fw-semibold">Username </label>
+              <label className="form-label small fw-semibold">Username</label>
               <input
                 type="text"
                 className="form-control"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                
-                style={{ padding: "10px", borderRadius: "6px" }}
               />
             </div>
             <div className="mb-3">
-              <label className="form-label small fw-semibold">Password </label>
+              <label className="form-label small fw-semibold">Password</label>
               <input
                 type="password"
                 className="form-control"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-    
-                style={{ padding: "10px", borderRadius: "6px" }}
               />
             </div>
             {employees.length === 0 && !error && !loading && (
@@ -137,9 +114,8 @@ function ChooseEmployee() {
 
             <button
               type="submit"
-              className="btn btn-dark w-100"
+              className="btn btn-primary btn-lg w-100 btn-pill"
               disabled={loading || username.trim() !== password.trim() || !username.trim()}
-              style={{ padding: "10px", borderRadius: "6px" }}
             >
               {loading ? "Logging in..." : "Login"}
             </button>

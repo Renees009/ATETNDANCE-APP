@@ -18,26 +18,13 @@ function AdminLogin() {
   };
 
   return (
-    <div
-      className="d-flex justify-content-center align-items-center"
-      style={{
-        minHeight: "100vh",
-        background: "linear-gradient(135deg, #1e3c72, #2a5298)",
-      }}
-    >
-      <div
-        className="card shadow-lg"
-        style={{
-          width: "100%",
-          maxWidth: "420px",
-          borderRadius: "15px",
-        }}
-      >
+    <div className="app-shell d-flex justify-content-center align-items-center">
+      <div className="card panel-card shadow-sm" style={{ width: "100%", maxWidth: "420px" }}>
         <div className="card-body p-4">
 
           {/* Title */}
           <div className="text-center mb-4">
-            <h3 className="fw-bold text-Black">Admin Login</h3>
+            <h3 className="fw-bold text-black">Admin Login</h3>
             <p className="text-muted mb-0">Enter credentials to continue</p>
           </div>
 
@@ -53,7 +40,6 @@ function AdminLogin() {
                 placeholder="Username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                style={{ borderRadius: "10px" }}
                 required
               />
             </div>
@@ -64,14 +50,12 @@ function AdminLogin() {
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                style={{ borderRadius: "10px" }}
                 required
               />
             </div>
             <button
               type="submit"
-              className="btn btn-primary btn-lg w-100"
-              style={{ borderRadius: "10px" }}
+              className="btn btn-primary btn-lg w-100 btn-pill"
             >
               Login as Admin
             </button>
